@@ -1,10 +1,26 @@
+'use client';
+
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
-import { AuthProviderWrapper } from '@/components/auth/auth-provider-wrapper';
-import type { AppUser } from '@/lib/types';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { Skeleton } from '@/components/ui/skeleton';
 
-function DashboardView({ children, user }: { children: React.ReactNode; user: AppUser | null }) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="w-64 space-y-2">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
     redirect('/login');
   }
@@ -17,13 +33,5 @@ function DashboardView({ children, user }: { children: React.ReactNode; user: Ap
         <main className="flex-1 p-4 sm:px-6 sm:py-0">{children}</main>
       </div>
     </div>
-  );
-}
-
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <AuthProviderWrapper>
-      {(user) => <DashboardView user={user}>{children}</DashboardView>}
-    </AuthProviderWrapper>
   );
 }
