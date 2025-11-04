@@ -67,14 +67,14 @@ For each potential anomaly, provide a clear and concise message explaining the i
 
 Here's the data for store {{{storeId}}} on {{{date}}}:
 
-Sales (Cash): ${{{salesCash}}}
-Sales (Card): ${{{salesCard}}}
-Total Over/Short: ${{{totalDifference}}}
+Sales (Cash): {{{salesCash}}}
+Sales (Card): {{{salesCard}}}
+Total Over/Short: {{{totalDifference}}}
 Customer Count: {{{customerCount}}}
 
 Expenses:
 {{#each expenses}}
-*   Category: {{{category}}}, Item: {{{item}}}, Amount: ${{{amount}}}, Description: {{{description}}}, Attachment: {{{attachmentUrl}}}
+*   Category: {{{category}}}, Item: {{{item}}}, Amount: \${{{amount}}}, Description: {{{description}}}, Attachment: {{{attachmentUrl}}}
 {{/each}}
 
 Based on this data, identify any anomalies and determine if an alert email should be sent to management.
