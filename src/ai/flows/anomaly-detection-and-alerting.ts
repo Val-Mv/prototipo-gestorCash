@@ -110,6 +110,7 @@ const anomalyDetectionAndAlertingFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await anomalyDetectionPrompt(input);
+    const finalOutput = output!;
 
     // After anomaly detection, check if any expense attachments need veracity checks
     if (input.expenses) {
@@ -122,18 +123,18 @@ const anomalyDetectionAndAlertingFlow = ai.defineFlow(
           });
 
           if (!isVerified) {
-            output!.anomalies.push({
+            finalOutput.anomalies.push({
               type: 'Attachment Veracity',
-              message: `The attachment for expense ${expense.expenseId} does not match the description and category.`, // changed from output.anomalies?.push to output!.anomalies.push
+              message: `The attachment for expense ${expense.expenseId} does not match the description and category.`,
               expenseId: expense.expenseId,
             });
-            output!.shouldSendAlert = true;
+            finalOutput.shouldSendAlert = true;
           }
         }
       }
     }
 
 
-    return output!;
+    return finalOutput;
   }
 );

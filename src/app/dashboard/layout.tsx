@@ -4,7 +4,7 @@ import { Header } from '@/components/layout/header';
 import { AuthProviderWrapper } from '@/components/auth/auth-provider-wrapper';
 import type { AppUser } from '@/lib/types';
 
-function DashboardView({ children }: { children: React.ReactNode, user: AppUser | null }) {
+function DashboardView({ children, user }: { children: React.ReactNode; user: AppUser | null }) {
   if (!user) {
     redirect('/login');
   }

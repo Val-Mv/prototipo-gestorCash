@@ -19,5 +19,5 @@ export function AuthProviderWrapper({ children }: { children: (user: AppUser | n
     );
   }
 
-  return <>{children(user)}</>;
+  return children(user);
 }
