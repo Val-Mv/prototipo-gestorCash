@@ -1,4 +1,4 @@
-# **App Name**: CashFlow Sentinel
+# **App Name**: GestorCash
 
 ## Core Features:
 
