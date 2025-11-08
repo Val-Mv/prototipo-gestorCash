@@ -2,26 +2,41 @@
   "name": "prototipo-gestor-cash",
   "version": "1.0.0",
   "private": true,
-  "description": "Sistema de gestión de caja - Backend Python/FastAPI + Frontend Next.js",
+  "description": "Sistema de gestión de caja - Backend Node.js/Express + Frontend Next.js",
   "scripts": {
     "dev": "cd app/web && npm run dev",
     "dev:web": "cd app/web && npm run dev",
+    "dev:server": "cd app/server && npm run dev",
+    "dev:all": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
     "build": "cd app/web && npm run build",
+    "build:server": "cd app/server && npm run build",
     "start": "cd app/web && npm start",
+    "start:server": "cd app/server && npm start",
     "lint": "cd app/web && npm run lint",
+    "lint:server": "cd app/server && npm run lint",
     "typecheck": "cd app/web && npm run typecheck",
+    "typecheck:server": "cd app/server && npm run typecheck",
     "install:web": "cd app/web && npm install",
-    "install:all": "npm run install:web"
+    "install:server": "cd app/server && npm install",
+    "install:all": "npm run install:server && npm run install:web"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   },
   "keywords": [
     "gestor-cash",
     "cash-management",
     "nextjs",
-    "fastapi"
+    "express",
+    "nodejs"
   ],
   "author": "",
   "license": "ISC",
   "workspaces": [
-    "app/web"
-  ]
+    "app/web",
+    "app/server"
+  ],
+  "dependencies": {
+    "postgres": "^3.4.7"
+  }
 }

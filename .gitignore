@@ -47,7 +47,7 @@ lerna-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Python (Backend)
+# Python (Backend antiguo - mantenido para referencia)
 __pycache__/
 *.py[cod]
 *$py.class
@@ -61,6 +61,13 @@ app/server/*.db
 app/server/*.sqlite
 app/server/sql_app.db
 app/server/*.sqlite3
+
+# Node.js (Backend nuevo)
+app/server/node_modules/
+app/server/dist/
+app/server/gestorcash.db
+app/server/*.db
+app/server/.env
 
 # IDE
 .vscode/
