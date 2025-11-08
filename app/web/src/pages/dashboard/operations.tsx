@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import {
     Card,
@@ -68,3 +66,4 @@ export default function OperationsPage() {
         </div>
     )
 }
+

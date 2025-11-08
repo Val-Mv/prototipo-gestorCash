@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Table,
   TableBody,
@@ -14,7 +12,6 @@ import { mockStores, mockRegisters } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 
 export default function StoresPage() {
@@ -109,3 +106,4 @@ export default function StoresPage() {
         </div>
     );
 }
+

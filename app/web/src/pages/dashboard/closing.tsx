@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -11,8 +9,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, ShieldAlert, CheckCircle, AlertTriangle } from 'lucide-react';
 import { mockRegisters, mockExpenses } from '@/lib/data';
-import type { AnomalyDetectionAndAlertingOutput } from '@/ai/flows/anomaly-detection-and-alerting';
-import { runAnomalyDetection } from '@/app/actions/closing';
+import type { AnomalyDetectionOutput } from '@/lib/ai/anomaly-detection';
+import { detectAnomaliesAndAlert } from '@/lib/ai/anomaly-detection';
 import { useAuth } from '@/lib/hooks/use-auth';
 
 const formatCurrency = (amount: number) => {
@@ -39,7 +37,7 @@ type FormData = z.infer<typeof formSchema>;
 export default function ClosingPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AnomalyDetectionAndAlertingOutput | null>(null);
+  const [result, setResult] = useState<AnomalyDetectionOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [totalDifference, setTotalDifference] = useState<number | null>(null);
 
@@ -93,7 +91,7 @@ export default function ClosingPage() {
     console.log("Closing data with timestamp and user:", closingData);
 
     try {
-      const res = await runAnomalyDetection({
+      const res = await detectAnomaliesAndAlert({
         storeId: 'berwyn-il',
         date: new Date().toISOString().split('T')[0],
         expenses: mockExpenses.map(e => ({
@@ -261,7 +259,7 @@ export default function ClosingPage() {
                       <Alert>
                         <CheckCircle className="h-4 w-4" />
                         <AlertTitle>No se Detectaron Anomalías</AlertTitle>
-                        <AlertDescription>El análisis de IA no encontró problemas significativos con los datos de hoy.</AlertDescription>
+                        <AlertDescription>El análisis no encontró problemas significativos con los datos de hoy.</AlertDescription>
                       </Alert>
                     )}
                   </CardContent>
@@ -274,3 +272,4 @@ export default function ClosingPage() {
     </div>
   );
 }
+

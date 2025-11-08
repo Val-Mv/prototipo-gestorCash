@@ -1,6 +1,4 @@
-'use client';
-
-import Link from 'next/link';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
   Users,
@@ -21,10 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 
@@ -40,7 +36,8 @@ const navItems = [
 
 export function Header() {
   const { user, logout } = useAuth();
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
 
   const getInitials = (name?: string | null) => {
     if (!name) return 'U';
@@ -73,7 +70,7 @@ export function Header() {
         <SheetContent side="left" className="sm:max-w-xs">
           <nav className="grid gap-6 text-lg font-medium">
              <Link
-                href="/dashboard"
+                to="/dashboard"
                 className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 transition-all group-hover:scale-110"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M16.2 7.8a4 4 0 0 0-5.2-1.2"/><path d="M13 10h5.5"/><path d="M13 14h5.5"/><path d="M7.8 16.2a4 4 0 0 0 5.2 1.2"/></svg>
@@ -84,7 +81,7 @@ export function Header() {
               .map(item => (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  to={item.href}
                   className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                 >
                   <item.icon className="h-5 w-5" />

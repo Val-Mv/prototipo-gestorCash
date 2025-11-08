@@ -1,7 +1,7 @@
 /**
  * Configuración de la API Backend
  */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * Función helper para hacer requests al backend
@@ -25,4 +25,3 @@ export async function apiRequest<T>(
 
   return response.json();
 }
-

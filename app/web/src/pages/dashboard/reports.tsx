@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Table,
   TableBody,
@@ -184,3 +182,4 @@ export default function ReportsPage() {
         </div>
     );
 }
+

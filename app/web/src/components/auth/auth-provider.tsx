@@ -1,9 +1,7 @@
-'use client';
-
 import type { AppUser } from '@/lib/types';
 import { mockUsers } from '@/lib/data';
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: AppUser | null;
@@ -19,7 +17,7 @@ const AUTH_STORAGE_KEY = 'cashflow-user';
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Usar setTimeout para evitar bloqueo del render inicial
@@ -42,25 +40,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string) => {
     setLoading(true);
-    // Mock authentication
-    const foundUser = mockUsers[email];
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(foundUser));
-      router.push('/dashboard');
-    } else {
-      throw new Error('User not found or password incorrect');
+    try {
+      // Mock authentication
+      const foundUser = mockUsers[email];
+      if (foundUser) {
+        setUser(foundUser);
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(foundUser));
+        navigate('/dashboard');
+      } else {
+        throw new Error('User not found or password incorrect');
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [router]);
+  }, [navigate]);
 
   const logout = useCallback(async () => {
     setLoading(true);
-    setUser(null);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
-    router.push('/login');
-    setLoading(false);
-  }, [router]);
+    try {
+      setUser(null);
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      navigate('/login');
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
 
   const value = { user, loading, login, logout };
 

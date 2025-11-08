@@ -1,23 +1,21 @@
-'use client';
-
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function RootPage() {
   const { user, loading } = useAuth();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.replace('/dashboard');
+        navigate('/dashboard', { replace: true });
       } else {
-        router.replace('/login');
+        navigate('/login', { replace: true });
       }
     }
-  }, [user, loading, router]);
+  }, [user, loading, navigate]);
 
   return (
     <div className="flex h-screen items-center justify-center bg-background">
@@ -35,3 +33,4 @@ export default function RootPage() {
     </div>
   );
 }
+

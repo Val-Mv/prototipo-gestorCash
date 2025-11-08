@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Table,
   TableBody,
@@ -99,3 +97,4 @@ export default function UsersPage() {
         </div>
     );
 }
+

@@ -1,6 +1,4 @@
-'use client';
-
-import dynamic from 'next/dynamic';
+import { Suspense, lazy } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { mockDailyReports } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,13 +12,7 @@ const chartData = mockDailyReports.map(report => ({
 const formatCurrency = (value: number) => `$${(value / 1000).toFixed(1)}k`;
 
 // Lazy load Recharts para mejorar el rendimiento inicial
-const SalesChartContent = dynamic(
-  () => import('./sales-chart-content'),
-  { 
-    loading: () => <Skeleton className="h-[300px] w-full" />,
-    ssr: false 
-  }
-);
+const SalesChartContent = lazy(() => import('./sales-chart-content'));
 
 export function SalesChart() {
   return (
@@ -30,7 +22,9 @@ export function SalesChart() {
         <CardDescription>Ventas en efectivo vs. tarjeta en los últimos 7 días.</CardDescription>
       </CardHeader>
       <CardContent>
-        <SalesChartContent data={chartData} />
+        <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
+          <SalesChartContent data={chartData} />
+        </Suspense>
       </CardContent>
     </Card>
   );

@@ -1,12 +1,14 @@
-'use client';
-
-import { redirect } from 'next/navigation';
-import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
+import { Sidebar } from './sidebar';
+import { Header } from './header';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Navigate } from 'react-router-dom';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -22,7 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    redirect('/login');
+    return <Navigate to="/login" replace />;
   }
 
   return (
@@ -35,3 +37,4 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
