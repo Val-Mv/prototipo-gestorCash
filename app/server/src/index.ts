@@ -2,12 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { syncDatabase } from './models';
-import openingRoutes from './routes/opening';
-import closingRoutes from './routes/closing';
-import expensesRoutes from './routes/expenses';
-import reportsRoutes from './routes/reports';
-import usersRoutes from './routes/users';
+import gastosRoutes from './routes/gastos';
+import ventasDiariasRoutes from './routes/ventas-diarias';
+import bitacorasRoutes from './routes/bitacoras';
+import usuariosRoutes from './routes/usuarios';
 import storesRoutes from './routes/stores';
+import conteosRoutes from './routes/conteos';
+import diferenciasCajaRoutes from './routes/diferencias-caja';
+import tiposConteoRoutes from './routes/tipos-conteo';
+import tiposDiferenciaRoutes from './routes/tipos-diferencia';
+import reportesDiariosRoutes from './routes/reportes-diarios';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -40,12 +44,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy' });
 });
 
-app.use('/api/opening', openingRoutes);
-app.use('/api/closing', closingRoutes);
-app.use('/api/expenses', expensesRoutes);
-app.use('/api/reports', reportsRoutes);
-app.use('/api/users', usersRoutes);
+app.use('/api/gastos', gastosRoutes);
+app.use('/api/ventas-diarias', ventasDiariasRoutes);
+app.use('/api/bitacoras', bitacorasRoutes);
+app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/stores', storesRoutes);
+app.use('/api/conteos', conteosRoutes);
+app.use('/api/diferencias-caja', diferenciasCajaRoutes);
+app.use('/api/tipos-conteo', tiposConteoRoutes);
+app.use('/api/tipos-diferencia', tiposDiferenciaRoutes);
+app.use('/api/reportes-diarios', reportesDiariosRoutes);
 
 // Manejo de errores
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

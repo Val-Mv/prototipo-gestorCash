@@ -23,3 +23,4 @@ EXPOSE 8000
 CMD ["npm", "run", "dev"]
 # Para modo producción, cambia a:
 # CMD ["npm", "run", "start"]
+

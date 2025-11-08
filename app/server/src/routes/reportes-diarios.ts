@@ -1,0 +1,175 @@
+import { Router, Request, Response } from 'express';
+import { Op } from 'sequelize';
+import { ReporteDiario } from '../models/ReporteDiario';
+import { reporteDiarioCreateSchema } from '../schemas/reporte-diario';
+
+const router = Router();
+
+const parseFecha = (fecha?: string | Date) => {
+  if (!fecha) return new Date();
+  if (fecha instanceof Date) return fecha;
+  const parsed = new Date(fecha);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error('Fecha inválida');
+  }
+  return parsed;
+};
+
+// Crear reporte diario
+router.post('/', async (req: Request, res: Response) => {
+  try {
+    const validatedData = reporteDiarioCreateSchema.parse(req.body);
+    const {
+      fecha,
+      totalVentas = 0,
+      totalGastos = 0,
+      saldoFinal = 0,
+      numeroClientesTotal = 0,
+      totalEfectivo = 0,
+      totalTarjeta = 0,
+      resumenDiferencias,
+      cantidadDiferencias = 0,
+      idUsuarioGenerador,
+    } = validatedData;
+
+    const reporte = await ReporteDiario.create({
+      fecha: parseFecha(fecha),
+      totalVentas,
+      totalGastos,
+      saldoFinal,
+      numeroClientesTotal,
+      totalEfectivo,
+      totalTarjeta,
+      resumenDiferencias: resumenDiferencias ?? null,
+      cantidadDiferencias,
+      idUsuarioGenerador,
+    });
+
+    res.status(201).json(reporte);
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+    } else if (error.message === 'Fecha inválida') {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: error.message });
+    }
+  }
+});
+
+// Listar reportes diarios
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const { skip = '0', limit = '100', fechaDesde, fechaHasta } = req.query;
+
+    const where: any = {};
+
+    if (fechaDesde && fechaHasta) {
+      where.fecha = {
+        [Op.between]: [new Date(String(fechaDesde)), new Date(String(fechaHasta))],
+      };
+    } else if (fechaDesde) {
+      where.fecha = {
+        [Op.gte]: new Date(String(fechaDesde)),
+      };
+    } else if (fechaHasta) {
+      where.fecha = {
+        [Op.lte]: new Date(String(fechaHasta)),
+      };
+    }
+
+    const reportes = await ReporteDiario.findAll({
+      where,
+      limit: Number(limit),
+      offset: Number(skip),
+      order: [['fecha', 'DESC']],
+    });
+
+    res.json(reportes);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Obtener reporte por ID
+router.get('/:idReporte', async (req: Request, res: Response) => {
+  try {
+    const reporte = await ReporteDiario.findByPk(req.params.idReporte);
+
+    if (!reporte) {
+      return res.status(404).json({ error: 'Reporte diario no encontrado' });
+    }
+
+    res.json(reporte);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Actualizar reporte diario
+router.put('/:idReporte', async (req: Request, res: Response) => {
+  try {
+    const validatedData = reporteDiarioCreateSchema.parse(req.body);
+    const reporte = await ReporteDiario.findByPk(req.params.idReporte);
+
+    if (!reporte) {
+      return res.status(404).json({ error: 'Reporte diario no encontrado' });
+    }
+
+    const {
+      fecha,
+      totalVentas = reporte.totalVentas,
+      totalGastos = reporte.totalGastos,
+      saldoFinal = reporte.saldoFinal,
+      numeroClientesTotal = reporte.numeroClientesTotal,
+      totalEfectivo = reporte.totalEfectivo,
+      totalTarjeta = reporte.totalTarjeta,
+      resumenDiferencias = reporte.resumenDiferencias ?? null,
+      cantidadDiferencias = reporte.cantidadDiferencias,
+      idUsuarioGenerador = reporte.idUsuarioGenerador,
+    } = validatedData;
+
+    await reporte.update({
+      fecha: parseFecha(fecha),
+      totalVentas,
+      totalGastos,
+      saldoFinal,
+      numeroClientesTotal,
+      totalEfectivo,
+      totalTarjeta,
+      resumenDiferencias,
+      cantidadDiferencias,
+      idUsuarioGenerador,
+    });
+
+    res.json(reporte);
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+    } else if (error.message === 'Fecha inválida') {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: error.message });
+    }
+  }
+});
+
+// Eliminar reporte diario
+router.delete('/:idReporte', async (req: Request, res: Response) => {
+  try {
+    const reporte = await ReporteDiario.findByPk(req.params.idReporte);
+
+    if (!reporte) {
+      return res.status(404).json({ error: 'Reporte diario no encontrado' });
+    }
+
+    await reporte.destroy();
+    res.json({ mensaje: 'Reporte diario eliminado correctamente' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+export default router;
+
+
