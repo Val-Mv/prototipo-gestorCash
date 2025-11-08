@@ -1,0 +1,27 @@
+{
+  "name": "prototipo-gestor-cash",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de gestión de caja - Backend Python/FastAPI + Frontend Next.js",
+  "scripts": {
+    "dev": "cd app/web && npm run dev",
+    "dev:web": "cd app/web && npm run dev",
+    "build": "cd app/web && npm run build",
+    "start": "cd app/web && npm start",
+    "lint": "cd app/web && npm run lint",
+    "typecheck": "cd app/web && npm run typecheck",
+    "install:web": "cd app/web && npm install",
+    "install:all": "npm run install:web"
+  },
+  "keywords": [
+    "gestor-cash",
+    "cash-management",
+    "nextjs",
+    "fastapi"
+  ],
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "app/web"
+  ]
+}
