@@ -4,6 +4,8 @@
   "private": true,
   "description": "Sistema de gestión de caja - Backend Node.js/Express + Frontend Next.js",
   "scripts": {
+    "use:local": "npx cross-env ACTIVE_DB=local USE_SSL=false docker compose up --build",
+    "use:supabase": "npx cross-env ACTIVE_DB=supabase USE_SSL=true docker compose up --build",
     "dev": "cd app/web && npm run dev",
     "dev:web": "cd app/web && npm run dev",
     "dev:server": "cd app/server && npm run dev",
