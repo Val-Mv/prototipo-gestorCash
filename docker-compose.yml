@@ -1,0 +1,50 @@
+services:
+  #  Base de datos PostgreSQL
+  db:
+    image: postgres:16
+    container_name: gestor-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: gestorcash
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d gestorcash"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  #  Backend Node.js / Express
+  backend:
+    build: ./app/server
+    container_name: gestor-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./app/server/.env
+    environment:
+      - ACTIVE_DB=local
+      - USE_SSL=false
+    volumes:
+      - ./app/server:/app
+      - /app/node_modules
+    command: npm run dev
+    restart: always
+
+  # frontend:
+  #   build: ./app/web
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://localhost:8000
+volumes:
+  postgres_data:
