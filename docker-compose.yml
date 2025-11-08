@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d gestorcash"]
+      test: [ "CMD-SHELL", "pg_isready -U admin -d gestorcash" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -37,7 +37,6 @@ services:
       - /app/node_modules
     command: npm run dev
     restart: always
-
   # frontend:
   #   build: ./app/web
   #   ports:
@@ -48,4 +47,5 @@ services:
   #     - NEXT_PUBLIC_API_URL=http://localhost:8000
 volumes:
   postgres_data:
+
 

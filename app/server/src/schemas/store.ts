@@ -9,12 +9,12 @@ export const storeCreateSchema = z.object({
 
 export type StoreCreate = z.infer<typeof storeCreateSchema>;
 
-export const cashRegisterCreateSchema = z.object({
-  id: z.string().min(1),
-  store_id: z.string().min(1),
-  number: z.number().int().positive(),
-  active: z.boolean().default(true),
+export const cajaRegistradoraCreateSchema = z.object({
+  numeroCaja: z.string().min(1),
+  montoInicialRequerido: z.number().nonnegative(),
+  ubicacion: z.string().min(1).optional().nullable(),
+  estadoActiva: z.boolean().optional().default(true),
 });
 
-export type CashRegisterCreate = z.infer<typeof cashRegisterCreateSchema>;
+export type CajaRegistradoraCreate = z.infer<typeof cajaRegistradoraCreateSchema>;
 

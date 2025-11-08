@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Store } from '../models/Store';
-import { CashRegister } from '../models/CashRegister';
-import { storeCreateSchema, cashRegisterCreateSchema } from '../schemas/store';
+import { CajaRegistradora } from '../models/CajaRegistradora';
+import { storeCreateSchema, cajaRegistradoraCreateSchema } from '../schemas/store';
 
 const router = Router();
 
@@ -99,8 +99,11 @@ router.delete('/:store_id', async (req: Request, res: Response) => {
 // Crear una nueva registradora
 router.post('/registers', async (req: Request, res: Response) => {
   try {
-    const validatedData = cashRegisterCreateSchema.parse(req.body);
-    const register = await CashRegister.create(validatedData);
+    const validatedData = cajaRegistradoraCreateSchema.parse(req.body);
+    const register = await CajaRegistradora.create({
+      ...validatedData,
+      estadoActiva: validatedData.estadoActiva ?? true,
+    });
     res.status(201).json(register);
   } catch (error: any) {
     if (error.name === 'ZodError') {
@@ -114,15 +117,14 @@ router.post('/registers', async (req: Request, res: Response) => {
 // Obtener todas las registradoras
 router.get('/registers', async (req: Request, res: Response) => {
   try {
-    const { store_id, active_only = 'true' } = req.query;
+    const { active_only = 'true' } = req.query;
     
     const where: any = {};
-    if (store_id) where.store_id = store_id;
     if (active_only === 'true') {
-      where.active = true;
+      where.estadoActiva = true;
     }
 
-    const registers = await CashRegister.findAll({ where });
+    const registers = await CajaRegistradora.findAll({ where });
     res.json(registers);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -132,7 +134,7 @@ router.get('/registers', async (req: Request, res: Response) => {
 // Obtener una registradora por ID
 router.get('/registers/:register_id', async (req: Request, res: Response) => {
   try {
-    const register = await CashRegister.findByPk(req.params.register_id);
+    const register = await CajaRegistradora.findByPk(req.params.register_id);
     
     if (!register) {
       return res.status(404).json({ error: 'Cash register not found' });
@@ -147,14 +149,14 @@ router.get('/registers/:register_id', async (req: Request, res: Response) => {
 // Actualizar una registradora
 router.put('/registers/:register_id', async (req: Request, res: Response) => {
   try {
-    const register = await CashRegister.findByPk(req.params.register_id);
+    const register = await CajaRegistradora.findByPk(req.params.register_id);
     
     if (!register) {
       return res.status(404).json({ error: 'Cash register not found' });
     }
 
     const updateData = { ...req.body };
-    delete updateData.id; // No permitir cambiar el ID
+    delete updateData.idCaja; // No permitir cambiar el ID
 
     await register.update(updateData);
     res.json(register);
@@ -166,13 +168,13 @@ router.put('/registers/:register_id', async (req: Request, res: Response) => {
 // Eliminar (desactivar) una registradora
 router.delete('/registers/:register_id', async (req: Request, res: Response) => {
   try {
-    const register = await CashRegister.findByPk(req.params.register_id);
+    const register = await CajaRegistradora.findByPk(req.params.register_id);
     
     if (!register) {
       return res.status(404).json({ error: 'Cash register not found' });
     }
 
-    await register.update({ active: false });
+    await register.update({ estadoActiva: false });
     res.json({ message: 'Cash register deactivated successfully' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
