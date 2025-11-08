@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -8,93 +9,545 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockUsers, mockStores } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Loader2, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { getUsuarios, createUsuario, updateUsuario, deleteUsuario, type Usuario } from '@/lib/api/usuarios';
+import { getRoles, type Rol } from '@/lib/api/roles';
+import { getStores, type Store } from '@/lib/api/stores';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { format } from 'date-fns';
+
+const createUsuarioSchema = z.object({
+  nombreCompleto: z.string().min(1, 'El nombre es requerido').max(150),
+  email: z.string().email('Email inválido').max(150),
+  contrasenaHash: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(255),
+  telefono: z.string().max(30).optional().nullable(),
+  idRol: z.number().int().positive('Debe seleccionar un rol'),
+  estadoActivo: z.boolean().default(true),
+});
+
+const updateUsuarioSchema = z.object({
+  nombreCompleto: z.string().min(1, 'El nombre es requerido').max(150),
+  email: z.string().email('Email inválido').max(150),
+  contrasenaHash: z.string().max(255).optional(),
+  telefono: z.string().max(30).optional().nullable(),
+  idRol: z.number().int().positive('Debe seleccionar un rol'),
+  estadoActivo: z.boolean().default(true),
+}).refine((data) => {
+  // Si se proporciona contraseña, debe tener al menos 6 caracteres
+  if (data.contrasenaHash && data.contrasenaHash.length > 0) {
+    return data.contrasenaHash.length >= 6;
+  }
+  return true;
+}, {
+  message: 'La contraseña debe tener al menos 6 caracteres',
+  path: ['contrasenaHash'],
+});
+
+type UsuarioFormData = z.infer<typeof createUsuarioSchema>;
 
 export default function UsersPage() {
-    const { user } = useAuth();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [roles, setRoles] = useState<Rol[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
+  const [deletingUsuario, setDeletingUsuario] = useState<Usuario | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-    if (user?.role !== 'DM' && user?.role !== 'SM') {
-        return (
-            <div className="flex h-[80vh] items-center justify-center">
-                <Card className="w-full max-w-md">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-destructive">Acceso Denegado</CardTitle>
-                        <CardDescription>No tienes permiso para ver esta página.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p>Por favor contacta a tu gerente de distrito si crees que esto es un error.</p>
-                    </CardContent>
-                </Card>
-            </div>
-        )
+  // Crear un tipo unión para el formulario
+  type UsuarioFormInput = {
+    nombreCompleto: string;
+    email: string;
+    contrasenaHash: string;
+    telefono?: string | null;
+    idRol: number;
+    estadoActivo: boolean;
+  };
+
+  const form = useForm<UsuarioFormInput>({
+    resolver: zodResolver(createUsuarioSchema), // Por defecto usar el schema de creación
+    defaultValues: {
+      nombreCompleto: '',
+      email: '',
+      contrasenaHash: '',
+      telefono: '',
+      idRol: 0,
+      estadoActivo: true,
+    },
+  });
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [usuariosData, rolesData, storesData] = await Promise.all([
+        getUsuarios({ soloActivos: false }),
+        getRoles(),
+        getStores(false),
+      ]);
+      setUsuarios(usuariosData);
+      setRoles(rolesData);
+      setStores(storesData);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error al cargar datos',
+        description: error.message || 'No se pudieron cargar los datos',
+      });
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const users = Object.values(mockUsers);
-    const getStoreName = (storeId?: string) => {
-        if (!storeId) return 'N/A';
-        return mockStores.find(s => s.id === storeId)?.name || 'Tienda Desconocida';
+  const handleOpenDialog = (usuario?: Usuario) => {
+    if (usuario) {
+      setEditingUsuario(usuario);
+      // Actualizar el resolver para usar el schema de actualización
+      form.clearErrors();
+      form.reset({
+        nombreCompleto: usuario.nombreCompleto,
+        email: usuario.email,
+        contrasenaHash: '', // No mostrar la contraseña
+        telefono: usuario.telefono || '',
+        idRol: usuario.idRol,
+        estadoActivo: usuario.estadoActivo,
+      });
+    } else {
+      setEditingUsuario(null);
+      // Actualizar el resolver para usar el schema de creación
+      form.clearErrors();
+      form.reset({
+        nombreCompleto: '',
+        email: '',
+        contrasenaHash: '',
+        telefono: '',
+        idRol: 0,
+        estadoActivo: true,
+      });
     }
+    setIsDialogOpen(true);
+  };
 
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingUsuario(null);
+    form.reset();
+  };
+
+  const onSubmit = async (data: UsuarioFormInput) => {
+    try {
+      setSubmitting(true);
+      
+      // Validación específica según el modo
+      if (editingUsuario) {
+        // Validar para actualización
+        const updateValidation = updateUsuarioSchema.safeParse(data);
+        if (!updateValidation.success) {
+          updateValidation.error.errors.forEach((err) => {
+            form.setError(err.path[0] as any, { message: err.message });
+          });
+          setSubmitting(false);
+          return;
+        }
+        
+        // Actualizar usuario
+        const updateData: any = {
+          nombreCompleto: data.nombreCompleto,
+          email: data.email,
+          telefono: data.telefono || null,
+          idRol: data.idRol,
+          estadoActivo: data.estadoActivo,
+        };
+        
+        // Solo actualizar contraseña si se proporcionó una nueva (no vacía)
+        if (data.contrasenaHash && data.contrasenaHash.trim().length > 0) {
+          if (data.contrasenaHash.length < 6) {
+            form.setError('contrasenaHash', {
+              message: 'La contraseña debe tener al menos 6 caracteres',
+            });
+            setSubmitting(false);
+            return;
+          }
+          updateData.contrasenaHash = data.contrasenaHash;
+        }
+        
+        await updateUsuario(editingUsuario.idUsuario, updateData);
+        toast({
+          title: 'Usuario actualizado',
+          description: 'El usuario ha sido actualizado correctamente.',
+        });
+      } else {
+        // Validar para creación
+        const createValidation = createUsuarioSchema.safeParse(data);
+        if (!createValidation.success) {
+          createValidation.error.errors.forEach((err) => {
+            form.setError(err.path[0] as any, { message: err.message });
+          });
+          setSubmitting(false);
+          return;
+        }
+        
+        await createUsuario(data);
+        toast({
+          title: 'Usuario creado',
+          description: 'El usuario ha sido creado correctamente.',
+        });
+      }
+      
+      await loadData();
+      handleCloseDialog();
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: editingUsuario ? 'Error al actualizar' : 'Error al crear',
+        description: error.message || 'No se pudo guardar el usuario',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = (usuario: Usuario) => {
+    setDeletingUsuario(usuario);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingUsuario) return;
+
+    try {
+      await deleteUsuario(deletingUsuario.idUsuario);
+      toast({
+        title: 'Usuario desactivado',
+        description: 'El usuario ha sido desactivado correctamente.',
+      });
+      await loadData();
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error al desactivar',
+        description: error.message || 'No se pudo desactivar el usuario',
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setDeletingUsuario(null);
+    }
+  };
+
+  const getRolName = (idRol: number) => {
+    const rol = roles.find(r => r.idRol === idRol);
+    return rol?.nombreRol || 'Desconocido';
+  };
+
+  if (user?.role !== 'DM' && user?.role !== 'SM') {
     return (
-        <div className="container mx-auto py-4">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle className="font-headline">Gestión de Usuarios</CardTitle>
-                        <CardDescription>Agregar, editar o eliminar cuentas de usuario.</CardDescription>
-                    </div>
-                    <Button size="sm">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Agregar Usuario
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Nombre</TableHead>
-                                <TableHead>Rol</TableHead>
-                                <TableHead>Tienda</TableHead>
-                                <TableHead>Acciones</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {users.map((u) => (
-                                <TableRow key={u.uid}>
-                                    <TableCell>
-                                        <div className="font-medium">{u.displayName}</div>
-                                        <div className="text-sm text-muted-foreground">{u.email}</div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge>{u.role}</Badge>
-                                    </TableCell>
-                                    <TableCell>{getStoreName(u.storeId)}</TableCell>
-                                    <TableCell>
-                                         <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">Alternar menú</span>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                <DropdownMenuItem>Editar</DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive">Desactivar</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
+      <div className="flex h-[80vh] items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="font-headline text-destructive">Acceso Denegado</CardTitle>
+            <CardDescription>No tienes permiso para ver esta página.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Por favor contacta a tu gerente de distrito si crees que esto es un error.</p>
+          </CardContent>
+        </Card>
+      </div>
     );
-}
+  }
 
+  if (loading) {
+    return (
+      <div className="container mx-auto py-4">
+        <Card>
+          <CardContent className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="font-headline">Gestión de Usuarios</CardTitle>
+            <CardDescription>Agregar, editar o eliminar cuentas de usuario.</CardDescription>
+          </div>
+          <Button size="sm" onClick={() => handleOpenDialog()}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Agregar Usuario
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Rol</TableHead>
+                <TableHead>Teléfono</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Fecha Creación</TableHead>
+                <TableHead>Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {usuarios.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    No hay usuarios registrados
+                  </TableCell>
+                </TableRow>
+              ) : (
+                usuarios.map((u) => (
+                  <TableRow key={u.idUsuario}>
+                    <TableCell className="font-medium">{u.nombreCompleto}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{getRolName(u.idRol)}</Badge>
+                    </TableCell>
+                    <TableCell>{u.telefono || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Badge variant={u.estadoActivo ? 'default' : 'destructive'}>
+                        {u.estadoActivo ? 'Activo' : 'Inactivo'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {u.fechaCreacion 
+                        ? format(new Date(u.fechaCreacion), 'dd/MM/yyyy')
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Alternar menú</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleOpenDialog(u)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => handleDelete(u)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {u.estadoActivo ? 'Desactivar' : 'Activar'}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Dialog para crear/editar usuario */}
+      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+        <DialogContent className="sm:max-w-[525px]">
+          <DialogHeader>
+            <DialogTitle className="font-headline">
+              {editingUsuario ? 'Editar Usuario' : 'Agregar Usuario'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingUsuario 
+                ? 'Actualiza la información del usuario.' 
+                : 'Completa el formulario para crear un nuevo usuario.'}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="nombreCompleto"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre Completo</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Juan Pérez" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="usuario@ejemplo.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="contrasenaHash"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Contraseña {editingUsuario && '(opcional - dejar vacío para no cambiar)'}
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder={editingUsuario ? 'Dejar vacío para no cambiar' : 'Mínimo 6 caracteres'} 
+                        {...field}
+                        required={!editingUsuario}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    {editingUsuario && (
+                      <p className="text-sm text-muted-foreground">
+                        Deja este campo vacío si no deseas cambiar la contraseña
+                      </p>
+                    )}
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="telefono"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Teléfono (opcional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="tel" 
+                        placeholder="+1 234 567 8900" 
+                        {...field}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="idRol"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rol</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      value={field.value?.toString() || ''}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un rol" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {roles.map((rol) => (
+                          <SelectItem key={rol.idRol} value={rol.idRol.toString()}>
+                            {rol.nombreRol}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="estadoActivo"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Usuario Activo</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {editingUsuario ? 'Actualizar' : 'Crear'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para confirmar eliminación */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletingUsuario?.estadoActivo
+                ? `Se desactivará el usuario ${deletingUsuario.nombreCompleto}. No podrá iniciar sesión hasta que sea reactivado.`
+                : `Se activará el usuario ${deletingUsuario?.nombreCompleto}. Podrá iniciar sesión nuevamente.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              {deletingUsuario?.estadoActivo ? 'Desactivar' : 'Activar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

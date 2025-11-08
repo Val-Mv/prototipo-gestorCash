@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export const storeCreateSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  code: z.string().min(1),
-  active: z.boolean().default(true),
+  id: z.string().min(1, 'El ID es requerido'),
+  name: z.string().min(1, 'El nombre es requerido'),
+  code: z.string().min(1, 'El código es requerido'),
+  active: z.boolean().optional().default(true),
 });
 
 export type StoreCreate = z.infer<typeof storeCreateSchema>;
