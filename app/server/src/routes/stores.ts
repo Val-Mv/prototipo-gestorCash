@@ -15,14 +15,41 @@ const router = Router();
 // Crear una nueva tienda
 router.post('/', async (req: Request, res: Response) => {
   try {
+    // Validar datos con Zod
     const validatedData = storeCreateSchema.parse(req.body);
+    
+    // Verificar si ya existe una tienda con el mismo ID
+    const existingStoreById = await Store.findByPk(validatedData.id);
+    if (existingStoreById) {
+      return res.status(400).json({ 
+        error: 'Ya existe una tienda con este ID',
+        details: [{ path: ['id'], message: 'El ID de tienda ya está en uso' }]
+      });
+    }
+    
+    // Verificar si ya existe una tienda con el mismo código
+    const existingStoreByCode = await Store.findOne({ where: { code: validatedData.code } });
+    if (existingStoreByCode) {
+      return res.status(400).json({ 
+        error: 'Ya existe una tienda con este código',
+        details: [{ path: ['code'], message: 'El código de tienda ya está en uso' }]
+      });
+    }
+    
+    // Crear la tienda
     const store = await Store.create(validatedData);
     return res.status(201).json(store);
   } catch (error: any) {
     if (error.name === 'ZodError') {
       return res.status(400).json({ error: 'Datos inválidos', details: error.errors });
+    } else if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ 
+        error: 'Error de restricción única',
+        details: [{ message: 'Ya existe una tienda con este ID o código' }]
+      });
     } else {
-      return res.status(500).json({ error: error.message });
+      console.error('Error al crear tienda:', error);
+      return res.status(500).json({ error: error.message || 'Error al crear la tienda' });
     }
   }
 });
@@ -30,17 +57,20 @@ router.post('/', async (req: Request, res: Response) => {
 // Obtener todas las tiendas
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { skip = 0, limit = 100, active_only = 'true' } = req.query;
+    const { skip = 0, limit = 100, active_only } = req.query;
     
     const where: any = {};
+    // Solo filtrar si active_only es explícitamente 'true'
     if (active_only === 'true') {
       where.active = true;
     }
+    // Si active_only es 'false' o no está presente, no filtrar (mostrar todas)
 
     const stores = await Store.findAll({
       where,
       limit: Number(limit),
       offset: Number(skip),
+      order: [['name', 'ASC']],
     });
 
     return res.json(stores);
@@ -128,14 +158,17 @@ router.post('/registers', async (req: Request, res: Response) => {
 // Obtener todas las registradoras
 router.get('/registers', async (req: Request, res: Response) => {
   try {
-    const { active_only = 'true' } = req.query;
+    const { active_only } = req.query;
     
     const where: any = {};
     if (active_only === 'true') {
       where.estadoActiva = true;
     }
 
-    const registers = await CajaRegistradora.findAll({ where });
+    const registers = await CajaRegistradora.findAll({ 
+      where,
+      order: [['numeroCaja', 'ASC']],
+    });
     return res.json(registers);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });

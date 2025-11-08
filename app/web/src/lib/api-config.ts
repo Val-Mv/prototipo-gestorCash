@@ -19,8 +19,19 @@ export async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Error desconocido' }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { message: `HTTP error! status: ${response.status}` };
+    }
+    
+    // Crear un error más descriptivo
+    const error = new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
+    (error as any).error = errorData.error;
+    (error as any).details = errorData.details || errorData.detalles;
+    (error as any).status = response.status;
+    throw error;
   }
 
   return response.json();

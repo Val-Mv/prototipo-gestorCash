@@ -12,6 +12,7 @@ import diferenciasCajaRoutes from './routes/diferencias-caja';
 import tiposConteoRoutes from './routes/tipos-conteo';
 import tiposDiferenciaRoutes from './routes/tipos-diferencia';
 import reportesDiariosRoutes from './routes/reportes-diarios';
+import rolesRoutes from './routes/roles';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -54,6 +55,7 @@ app.use('/api/diferencias-caja', diferenciasCajaRoutes);
 app.use('/api/tipos-conteo', tiposConteoRoutes);
 app.use('/api/tipos-diferencia', tiposDiferenciaRoutes);
 app.use('/api/reportes-diarios', reportesDiariosRoutes);
+app.use('/api/roles', rolesRoutes);
 
 // Manejo de errores
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
