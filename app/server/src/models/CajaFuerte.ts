@@ -28,7 +28,7 @@ export class CajaFuerte
 CajaFuerte.init(
   {
     idCajaFuerte: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },

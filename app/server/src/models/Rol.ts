@@ -18,7 +18,7 @@ export class Rol extends Model<RolAttributes, RolCreationAttributes> implements 
 Rol.init(
   {
     idRol: {
-      type: DataTypes.DECIMAL(5, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },

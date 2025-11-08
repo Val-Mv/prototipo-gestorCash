@@ -1,7 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { Store } from '../models/Store';
 import { CajaRegistradora } from '../models/CajaRegistradora';
-import { storeCreateSchema, cajaRegistradoraCreateSchema } from '../schemas/store';
+import {
+  storeCreateSchema,
+  storeUpdateSchema,
+  cajaRegistradoraCreateSchema,
+  cajaRegistradoraUpdateSchema,
+} from '../schemas/store';
 
 const router = Router();
 
@@ -12,12 +17,12 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = storeCreateSchema.parse(req.body);
     const store = await Store.create(validatedData);
-    res.status(201).json(store);
+    return res.status(201).json(store);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', details: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', details: error.errors });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -38,9 +43,9 @@ router.get('/', async (req: Request, res: Response) => {
       offset: Number(skip),
     });
 
-    res.json(stores);
+    return res.json(stores);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -53,9 +58,9 @@ router.get('/:store_id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Store not found' });
     }
 
-    res.json(store);
+    return res.json(store);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -68,13 +73,19 @@ router.put('/:store_id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Store not found' });
     }
 
-    const updateData = { ...req.body };
-    delete updateData.id; // No permitir cambiar el ID
+    const updateData = storeUpdateSchema.parse(req.body);
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No se proporcionaron datos para actualizar' });
+    }
 
     await store.update(updateData);
-    res.json(store);
+    return res.json(store);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    if (error.name === 'ZodError') {
+      return res.status(400).json({ error: 'Datos inválidos', details: error.errors });
+    } else {
+      return res.status(500).json({ error: error.message });
+    }
   }
 });
 
@@ -88,9 +99,9 @@ router.delete('/:store_id', async (req: Request, res: Response) => {
     }
 
     await store.update({ active: false });
-    res.json({ message: 'Store deactivated successfully' });
+    return res.json({ message: 'Store deactivated successfully' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -104,12 +115,12 @@ router.post('/registers', async (req: Request, res: Response) => {
       ...validatedData,
       estadoActiva: validatedData.estadoActiva ?? true,
     });
-    res.status(201).json(register);
+    return res.status(201).json(register);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', details: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', details: error.errors });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -125,9 +136,9 @@ router.get('/registers', async (req: Request, res: Response) => {
     }
 
     const registers = await CajaRegistradora.findAll({ where });
-    res.json(registers);
+    return res.json(registers);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -140,9 +151,9 @@ router.get('/registers/:register_id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Cash register not found' });
     }
 
-    res.json(register);
+    return res.json(register);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -155,13 +166,19 @@ router.put('/registers/:register_id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Cash register not found' });
     }
 
-    const updateData = { ...req.body };
-    delete updateData.idCaja; // No permitir cambiar el ID
+    const updateData = cajaRegistradoraUpdateSchema.parse(req.body);
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No se proporcionaron datos para actualizar' });
+    }
 
     await register.update(updateData);
-    res.json(register);
+    return res.json(register);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    if (error.name === 'ZodError') {
+      return res.status(400).json({ error: 'Datos inválidos', details: error.errors });
+    } else {
+      return res.status(500).json({ error: error.message });
+    }
   }
 });
 
@@ -175,9 +192,9 @@ router.delete('/registers/:register_id', async (req: Request, res: Response) => 
     }
 
     await register.update({ estadoActiva: false });
-    res.json({ message: 'Cash register deactivated successfully' });
+    return res.json({ message: 'Cash register deactivated successfully' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

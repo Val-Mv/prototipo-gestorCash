@@ -34,7 +34,7 @@ export class VentaDiaria
 VentaDiaria.init(
   {
     idVenta: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -64,15 +64,15 @@ VentaDiaria.init(
       defaultValue: 0,
     },
     idCaja: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     idUsuario: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     idReporte: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
   },

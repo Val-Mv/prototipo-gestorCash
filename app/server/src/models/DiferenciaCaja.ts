@@ -36,7 +36,7 @@ export class DiferenciaCaja
 DiferenciaCaja.init(
   {
     idDiferencia: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -67,15 +67,15 @@ DiferenciaCaja.init(
       defaultValue: false,
     },
     idConteo: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     idTipoDiferencia: {
-      type: DataTypes.DECIMAL(5, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     idUsuario: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   },

@@ -40,7 +40,7 @@ export class Gasto extends Model<GastoAttributes, GastoCreationAttributes> imple
 Gasto.init(
   {
     idGasto: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -66,27 +66,27 @@ Gasto.init(
       allowNull: false,
     },
     idCaja: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     idUsuarioRegistro: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     idUsuarioAprobacion: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     idCajaOrigen: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     idCategoria: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     idEstadoGasto: {
-      type: DataTypes.DECIMAL(5, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   },

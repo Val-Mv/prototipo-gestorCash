@@ -33,7 +33,7 @@ export class Conteo extends Model<ConteoAttributes, ConteoCreationAttributes> im
 Conteo.init(
   {
     idConteo: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -59,19 +59,19 @@ Conteo.init(
       allowNull: true,
     },
     idCaja: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     idUsuario: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     idTipoConteo: {
-      type: DataTypes.DECIMAL(5, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     idReporte: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
   },

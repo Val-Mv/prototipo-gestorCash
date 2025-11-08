@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Op } from 'sequelize';
 import { BitacoraAuditoria } from '../models/BitacoraAuditoria';
-import { bitacoraCreateSchema } from '../schemas/bitacora';
+import { bitacoraCreateSchema, bitacoraUpdateSchema } from '../schemas/bitacora';
 
 const router = Router();
 
@@ -26,14 +26,14 @@ router.post('/', async (req: Request, res: Response) => {
       fechaHora: parseFechaHora(fechaHora),
     });
 
-    res.status(201).json(bitacora);
+    return res.status(201).json(bitacora);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha u hora inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -75,9 +75,9 @@ router.get('/', async (req: Request, res: Response) => {
       order: [['fechaHora', 'DESC']],
     });
 
-    res.json(bitacoras);
+    return res.json(bitacoras);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -90,16 +90,19 @@ router.get('/:idBitacora', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Bitácora no encontrada' });
     }
 
-    res.json(bitacora);
+    return res.json(bitacora);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
 // Actualizar una bitácora
 router.put('/:idBitacora', async (req: Request, res: Response) => {
   try {
-    const validatedData = bitacoraCreateSchema.parse(req.body);
+    const validatedData = bitacoraUpdateSchema.parse(req.body);
+    if (Object.keys(validatedData).length === 0) {
+      return res.status(400).json({ error: 'No se proporcionaron datos para actualizar' });
+    }
     const bitacora = await BitacoraAuditoria.findByPk(req.params.idBitacora);
 
     if (!bitacora) {
@@ -112,14 +115,14 @@ router.put('/:idBitacora', async (req: Request, res: Response) => {
       fechaHora: parseFechaHora(fechaHora),
     });
 
-    res.json(bitacora);
+    return res.json(bitacora);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha u hora inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -134,9 +137,9 @@ router.delete('/:idBitacora', async (req: Request, res: Response) => {
     }
 
     await bitacora.destroy();
-    res.json({ mensaje: 'Bitácora eliminada correctamente' });
+    return res.json({ mensaje: 'Bitácora eliminada correctamente' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

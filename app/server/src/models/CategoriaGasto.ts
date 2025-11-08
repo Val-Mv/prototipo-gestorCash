@@ -28,7 +28,7 @@ export class CategoriaGasto
 CategoriaGasto.init(
   {
     idCategoria: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -51,7 +51,7 @@ CategoriaGasto.init(
       defaultValue: true,
     },
     idUsuarioCreacion: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   },

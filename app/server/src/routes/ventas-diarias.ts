@@ -26,14 +26,14 @@ router.post('/', async (req: Request, res: Response) => {
       fecha: parseFecha(fecha),
     });
 
-    res.status(201).json(venta);
+    return res.status(201).json(venta);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -75,9 +75,9 @@ router.get('/', async (req: Request, res: Response) => {
       order: [['fecha', 'DESC']],
     });
 
-    res.json(ventas);
+    return res.json(ventas);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -90,9 +90,9 @@ router.get('/:idVenta', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Venta diaria no encontrada' });
     }
 
-    res.json(venta);
+    return res.json(venta);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -112,14 +112,14 @@ router.put('/:idVenta', async (req: Request, res: Response) => {
       fecha: parseFecha(fecha),
     });
 
-    res.json(venta);
+    return res.json(venta);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -134,9 +134,9 @@ router.delete('/:idVenta', async (req: Request, res: Response) => {
     }
 
     await venta.destroy();
-    res.json({ mensaje: 'Venta diaria eliminada correctamente' });
+    return res.json({ mensaje: 'Venta diaria eliminada correctamente' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

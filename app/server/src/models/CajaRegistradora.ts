@@ -28,7 +28,7 @@ export class CajaRegistradora
 CajaRegistradora.init(
   {
     idCaja: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },

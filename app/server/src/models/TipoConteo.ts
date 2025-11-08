@@ -18,7 +18,7 @@ export class TipoConteo extends Model<TipoConteoAttributes, TipoConteoCreationAt
 TipoConteo.init(
   {
     idTipoConteo: {
-      type: DataTypes.DECIMAL(5, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },

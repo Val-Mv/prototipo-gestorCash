@@ -39,7 +39,7 @@ export class BitacoraAuditoria
 BitacoraAuditoria.init(
   {
     idBitacora: {
-      type: DataTypes.DECIMAL(15, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -77,7 +77,7 @@ BitacoraAuditoria.init(
       allowNull: true,
     },
     idUsuario: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   },

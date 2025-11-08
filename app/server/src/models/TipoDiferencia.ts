@@ -19,7 +19,7 @@ export class TipoDiferencia
 TipoDiferencia.init(
   {
     idTipoDiferencia: {
-      type: DataTypes.DECIMAL(5, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },

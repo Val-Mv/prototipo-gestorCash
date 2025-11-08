@@ -3,32 +3,46 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Perfil activo: local o supabase
 const profile = (process.env.ACTIVE_DB || 'local').toLowerCase();
+const logging = process.env.NODE_ENV === 'development' ? console.log : false;
 
-// Selecciona URL según el entorno
-const DATABASE_URL =
-  profile === 'supabase'
-    ? process.env.SUPABASE_DATABASE_URL
-    : process.env.LOCAL_DATABASE_URL;
+const resolveDatabaseUrl = () => {
+  if (profile === 'supabase') {
+    return process.env.SUPABASE_DATABASE_URL;
+  }
 
-if (!DATABASE_URL) {
+  return process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL;
+};
+
+const databaseUrl = resolveDatabaseUrl();
+
+if (!databaseUrl) {
   throw new Error('❌ DATABASE_URL no está definida. Revisa tu archivo .env');
 }
 
-// Define si debe usar SSL
+const parsedUrl = new URL(databaseUrl);
+
+if (profile === 'local' && parsedUrl.hostname === 'db') {
+  parsedUrl.hostname = 'localhost';
+  console.warn('⚠️  Reemplazando host "db" por "localhost" para entorno local.');
+}
+
 const useSSL =
   profile === 'supabase' ||
   process.env.USE_SSL === 'true' ||
   process.env.NODE_ENV === 'production';
 
-// Conexión a PostgreSQL dinámica
-const sequelize = new Sequelize(DATABASE_URL, {
+const sequelize = new Sequelize(parsedUrl.toString(), {
   dialect: 'postgres',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  logging,
   dialectOptions: useSSL
-    ? { ssl: { require: true, rejectUnauthorized: false } }
-    : { ssl: false },
+    ? {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    }
+    : undefined,
   pool: {
     max: 10,
     min: 0,
@@ -37,14 +51,14 @@ const sequelize = new Sequelize(DATABASE_URL, {
   },
 });
 
-// Verifica conexión al iniciar
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log(`✅ Conectado exitosamente a PostgreSQL (${profile})`);
+    console.log(`✅ Conectado exitosamente a la base de datos (${parsedUrl.toString()})`);
   } catch (error) {
     console.error('❌ Error al conectar con la base de datos:', error);
   }
 })();
 
 export default sequelize;
+export { sequelize };

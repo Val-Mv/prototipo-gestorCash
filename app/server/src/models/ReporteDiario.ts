@@ -50,7 +50,7 @@ export class ReporteDiario
 ReporteDiario.init(
   {
     idReporte: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -99,7 +99,7 @@ ReporteDiario.init(
       defaultValue: 0,
     },
     idUsuarioGenerador: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   },

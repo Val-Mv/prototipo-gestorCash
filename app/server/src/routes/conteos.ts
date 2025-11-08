@@ -26,14 +26,14 @@ router.post('/', async (req: Request, res: Response) => {
       fechaHora: parseFechaHora(fechaHora),
     });
 
-    res.status(201).json(conteo);
+    return res.status(201).json(conteo);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha u hora inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -79,9 +79,9 @@ router.get('/', async (req: Request, res: Response) => {
       order: [['fechaHora', 'DESC']],
     });
 
-    res.json(conteos);
+    return res.json(conteos);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -94,9 +94,9 @@ router.get('/:idConteo', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Conteo no encontrado' });
     }
 
-    res.json(conteo);
+    return res.json(conteo);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -116,14 +116,14 @@ router.put('/:idConteo', async (req: Request, res: Response) => {
       fechaHora: parseFechaHora(fechaHora),
     });
 
-    res.json(conteo);
+    return res.json(conteo);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha u hora inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -138,9 +138,9 @@ router.delete('/:idConteo', async (req: Request, res: Response) => {
     }
 
     await conteo.destroy();
-    res.json({ mensaje: 'Conteo eliminado correctamente' });
+    return res.json({ mensaje: 'Conteo eliminado correctamente' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

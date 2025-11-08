@@ -29,7 +29,7 @@ export class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes>
 Usuario.init(
   {
     idUsuario: {
-      type: DataTypes.DECIMAL(12, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -61,7 +61,7 @@ Usuario.init(
       defaultValue: true,
     },
     idRol: {
-      type: DataTypes.DECIMAL(5, 0),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   },

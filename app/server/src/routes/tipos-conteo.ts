@@ -9,12 +9,12 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = tipoConteoCreateSchema.parse(req.body);
     const tipo = await TipoConteo.create(validatedData);
-    res.status(201).json(tipo);
+    return res.status(201).json(tipo);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -23,9 +23,9 @@ router.post('/', async (req: Request, res: Response) => {
 router.get('/', async (_req: Request, res: Response) => {
   try {
     const tipos = await TipoConteo.findAll({ order: [['nombreTipo', 'ASC']] });
-    res.json(tipos);
+    return res.json(tipos);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -38,9 +38,9 @@ router.get('/:idTipoConteo', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Tipo de conteo no encontrado' });
     }
 
-    res.json(tipo);
+    return res.json(tipo);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -55,12 +55,12 @@ router.put('/:idTipoConteo', async (req: Request, res: Response) => {
     }
 
     await tipo.update(validatedData);
-    res.json(tipo);
+    return res.json(tipo);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -75,9 +75,9 @@ router.delete('/:idTipoConteo', async (req: Request, res: Response) => {
     }
 
     await tipo.destroy();
-    res.json({ mensaje: 'Tipo de conteo eliminado correctamente' });
+    return res.json({ mensaje: 'Tipo de conteo eliminado correctamente' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

@@ -19,7 +19,7 @@ export class EstadoGasto
 EstadoGasto.init(
   {
     idEstadoGasto: {
-      type: DataTypes.DECIMAL(5, 0),
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },

@@ -27,14 +27,14 @@ router.post('/', async (req: Request, res: Response) => {
       resuelta: rest.resuelta ?? false,
     });
 
-    res.status(201).json(diferencia);
+    return res.status(201).json(diferencia);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -82,9 +82,9 @@ router.get('/', async (req: Request, res: Response) => {
       order: [['fecha', 'DESC']],
     });
 
-    res.json(diferencias);
+    return res.json(diferencias);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -97,9 +97,9 @@ router.get('/:idDiferencia', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Diferencia de caja no encontrada' });
     }
 
-    res.json(diferencia);
+    return res.json(diferencia);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -120,14 +120,14 @@ router.put('/:idDiferencia', async (req: Request, res: Response) => {
       resuelta: rest.resuelta ?? diferencia.resuelta,
     });
 
-    res.json(diferencia);
+    return res.json(diferencia);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -142,9 +142,9 @@ router.delete('/:idDiferencia', async (req: Request, res: Response) => {
     }
 
     await diferencia.destroy();
-    res.json({ mensaje: 'Diferencia de caja eliminada correctamente' });
+    return res.json({ mensaje: 'Diferencia de caja eliminada correctamente' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

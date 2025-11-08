@@ -45,14 +45,14 @@ router.post('/', async (req: Request, res: Response) => {
       idUsuarioGenerador,
     });
 
-    res.status(201).json(reporte);
+    return res.status(201).json(reporte);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -85,9 +85,9 @@ router.get('/', async (req: Request, res: Response) => {
       order: [['fecha', 'DESC']],
     });
 
-    res.json(reportes);
+    return res.json(reportes);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -100,9 +100,9 @@ router.get('/:idReporte', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Reporte diario no encontrado' });
     }
 
-    res.json(reporte);
+    return res.json(reporte);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -142,14 +142,14 @@ router.put('/:idReporte', async (req: Request, res: Response) => {
       idUsuarioGenerador,
     });
 
-    res.json(reporte);
+    return res.json(reporte);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else if (error.message === 'Fecha inválida') {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -164,9 +164,9 @@ router.delete('/:idReporte', async (req: Request, res: Response) => {
     }
 
     await reporte.destroy();
-    res.json({ mensaje: 'Reporte diario eliminado correctamente' });
+    return res.json({ mensaje: 'Reporte diario eliminado correctamente' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

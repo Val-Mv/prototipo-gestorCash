@@ -3,9 +3,9 @@ import { z } from 'zod';
 export const gastoCreateSchema = z.object({
   fecha: z.union([z.string(), z.date()]).optional(),
   monto: z.number().positive(),
-  descripcion: z.string().min(1),
-  numeroComprobante: z.string().min(1),
-  rutaComprobante: z.string().min(1),
+  descripcion: z.string().min(1).max(500),
+  numeroComprobante: z.string().min(1).max(200),
+  rutaComprobante: z.string().min(1).max(400),
   idCaja: z.number().int().positive().nullable().optional(),
   idUsuarioRegistro: z.number().int().positive(),
   idUsuarioAprobacion: z.number().int().positive().nullable().optional(),

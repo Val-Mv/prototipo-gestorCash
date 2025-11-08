@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Usuario } from '../models/Usuario';
-import { usuarioCreateSchema } from '../schemas/usuario';
+import { usuarioCreateSchema, usuarioUpdateSchema } from '../schemas/usuario';
 
 const router = Router();
 
@@ -19,12 +19,12 @@ router.post('/', async (req: Request, res: Response) => {
       estadoActivo: validatedData.estadoActivo ?? true,
     });
 
-    res.status(201).json(usuario);
+    return res.status(201).json(usuario);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
     } else {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 });
@@ -49,9 +49,9 @@ router.get('/', async (req: Request, res: Response) => {
       order: [['fechaCreacion', 'DESC']],
     });
 
-    res.json(usuarios);
+    return res.json(usuarios);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -64,9 +64,9 @@ router.get('/:idUsuario', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    res.json(usuario);
+    return res.json(usuario);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -79,13 +79,20 @@ router.put('/:idUsuario', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    const datosActualizados = { ...req.body };
-    delete datosActualizados.idUsuario;
+    const datosActualizados = usuarioUpdateSchema.parse(req.body);
+    if (Object.keys(datosActualizados).length === 0) {
+      return res.status(400).json({ error: 'No se proporcionaron datos para actualizar' });
+    }
+    delete (datosActualizados as any).idUsuario;
 
     await usuario.update(datosActualizados);
-    res.json(usuario);
+    return res.json(usuario);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    if (error.name === 'ZodError') {
+      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+    } else {
+      return res.status(500).json({ error: error.message });
+    }
   }
 });
 
@@ -99,9 +106,9 @@ router.delete('/:idUsuario', async (req: Request, res: Response) => {
     }
 
     await usuario.update({ estadoActivo: false });
-    res.json({ mensaje: 'Usuario desactivado correctamente' });
+    return res.json({ mensaje: 'Usuario desactivado correctamente' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

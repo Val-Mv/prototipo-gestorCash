@@ -32,7 +32,7 @@ app.use(cors({
 app.use(express.json());
 
 // Rutas
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.json({
     message: 'GestorCash API',
     version: '1.0.0',
@@ -40,7 +40,7 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({ status: 'healthy' });
 });
 
@@ -56,7 +56,7 @@ app.use('/api/tipos-diferencia', tiposDiferenciaRoutes);
 app.use('/api/reportes-diarios', reportesDiariosRoutes);
 
 // Manejo de errores
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({
     error: err.message || 'Error interno del servidor',
