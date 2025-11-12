@@ -123,3 +123,4 @@ docker exec gestor-postgres psql -U admin -d gestorcash -c "SELECT 'store' as ta
 
 **Conclusión:** Todas las pruebas básicas pasaron exitosamente. El sistema está listo para usar. Los scripts de backup requieren herramientas adicionales (pg_dump) pero están correctamente configurados.
 
+

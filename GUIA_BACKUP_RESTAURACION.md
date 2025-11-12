@@ -286,3 +286,4 @@ docker logs gestor-postgres
 
 **Última actualización:** Noviembre 2025
 
+

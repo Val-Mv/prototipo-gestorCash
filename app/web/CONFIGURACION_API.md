@@ -82,3 +82,4 @@ VITE_API_URL=https://api.tu-dominio.com
 - En producción, asegúrate de tener `VITE_API_URL` configurado
 - El backend debe estar corriendo antes de que el frontend pueda hacer peticiones
 
+

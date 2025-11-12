@@ -68,3 +68,4 @@ Write-Host "   2. Ejecuta: npm run use:supabase"
 Write-Host "   3. Verifica los logs: docker logs gestor-backend"
 Write-Host "   4. Prueba el endpoint: GET http://localhost:8000/api/usuarios"
 
+

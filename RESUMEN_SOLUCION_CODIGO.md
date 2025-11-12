@@ -123,3 +123,4 @@ Para más detalles, consulta:
 
 **Estado:** ✅ Solución implementada y lista para aplicar
 
+

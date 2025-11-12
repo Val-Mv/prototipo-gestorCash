@@ -95,3 +95,4 @@ Write-Host ""
 Write-Host "💡 Verificar restauración:" -ForegroundColor Cyan
 Write-Host "   docker exec $ContainerName psql -U $DatabaseUser -d $DatabaseName -c '\dt public.*'" -ForegroundColor Gray
 
+

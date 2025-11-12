@@ -511,3 +511,4 @@ npm run build
 
 **¿Necesitas ayuda?** Revisa la sección de [Solución de Problemas](#-solución-de-problemas) o consulta los logs con `docker logs gestor-backend`.
 
+

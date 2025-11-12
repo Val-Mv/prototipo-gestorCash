@@ -191,3 +191,4 @@ Database connection established
 
 **Estado:** ✅ Problema resuelto - El backend ahora se conecta correctamente a PostgreSQL en Docker usando el hostname `db`.
 
+

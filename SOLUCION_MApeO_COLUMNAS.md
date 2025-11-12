@@ -130,3 +130,4 @@ grep -r "type: DataTypes" app/server/src/models | grep -v "field:"
 
 **Estado:** 🔄 En progreso - Modelos principales corregidos, revisando modelos restantes
 
+
