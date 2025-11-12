@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Card,
     CardContent,
@@ -12,19 +12,44 @@ import {
     TabsList,
     TabsTrigger,
   } from "@/components/ui/tabs"
-  import { RecentExpenses } from "@/components/dashboard/recent-expenses"
-  import { AddExpenseForm } from "@/components/dashboard/add-expense-form"
-  import { Button } from "@/components/ui/button"
+import { RecentExpenses } from "@/components/dashboard/recent-expenses"
+import { AddExpenseForm } from "@/components/dashboard/add-expense-form"
+import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
-import type { Expense } from '@/lib/types';
+import type { Gasto } from '@/lib/types';
+import { obtenerGastos } from '@/lib/api/expenses';
+import { useToast } from '@/hooks/use-toast';
   
 export default function OperationsPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [gastos, setGastos] = useState<Gasto[]>([]);
+    const { toast } = useToast();
 
-    const handleExpenseAdded = (newExpense: Expense) => {
-        // Agregar el nuevo gasto a la lista
-        setExpenses(prev => [newExpense, ...prev]);
+    useEffect(() => {
+        const cargarGastos = async () => {
+            try {
+                const lista = await obtenerGastos({ limit: 20 });
+                setGastos(lista);
+            } catch (error: any) {
+                toast({
+                    variant: 'destructive',
+                    title: 'No se pudieron cargar los gastos',
+                    description: error?.message || 'Ocurrió un error al consultar el backend.',
+                });
+            }
+        };
+
+        cargarGastos();
+    }, [toast]);
+
+    const handleGastoAgregado = (nuevoGasto: Gasto) => {
+        setGastos(prev => {
+            const existente = prev.find(g => g.idGasto === nuevoGasto.idGasto);
+            if (existente) {
+                return prev.map(g => (g.idGasto === nuevoGasto.idGasto ? nuevoGasto : g));
+            }
+            return [nuevoGasto, ...prev];
+        });
     };
 
     return (
@@ -44,7 +69,7 @@ export default function OperationsPage() {
                     </Button>
                 </div>
                 <TabsContent value="expenses">
-                    <RecentExpenses expenses={expenses} />
+                    <RecentExpenses gastos={gastos} />
                 </TabsContent>
                 <TabsContent value="sales">
                     <Card>
@@ -58,10 +83,10 @@ export default function OperationsPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
-            <AddExpenseForm 
-                open={isDialogOpen} 
+            <AddExpenseForm
+                open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
-                onExpenseAdded={handleExpenseAdded}
+                onGastoAgregado={handleGastoAgregado}
             />
         </div>
     )

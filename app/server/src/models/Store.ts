@@ -41,7 +41,7 @@ Store.init(
   },
   {
     sequelize,
-    tableName: 'stores',
+    tableName: 'store',
     timestamps: false,
   }
 );

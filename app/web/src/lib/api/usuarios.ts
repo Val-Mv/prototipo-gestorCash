@@ -42,9 +42,15 @@ export interface UsuarioFilters {
  * Crear un nuevo usuario
  */
 export async function createUsuario(payload: CreateUsuarioPayload): Promise<Usuario> {
+  // Convertir estadoActivo de booleano a número (0 o 1) para el backend
+  const backendPayload = {
+    ...payload,
+    estadoActivo: payload.estadoActivo ? 1 : 0,
+  };
+  
   return apiRequest<Usuario>('/api/usuarios', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(backendPayload),
   });
 }
 
@@ -90,9 +96,17 @@ export async function updateUsuario(
   id: number,
   payload: UpdateUsuarioPayload
 ): Promise<Usuario> {
+  // Convertir estadoActivo de booleano a número (0 o 1) para el backend si está presente
+  const backendPayload = {
+    ...payload,
+    ...(payload.estadoActivo !== undefined && {
+      estadoActivo: payload.estadoActivo ? 1 : 0,
+    }),
+  };
+  
   return apiRequest<Usuario>(`/api/usuarios/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(backendPayload),
   });
 }
 

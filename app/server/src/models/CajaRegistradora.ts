@@ -6,7 +6,7 @@ export interface CajaRegistradoraAttributes {
   numeroCaja: string;
   montoInicialRequerido: number;
   ubicacion?: string | null;
-  estadoActiva: boolean;
+  estadoActiva: number;  // La BD usa numeric(1,0): 0 = false, 1 = true
   fechaRegistro?: Date;
 }
 
@@ -21,7 +21,7 @@ export class CajaRegistradora
   public numeroCaja!: string;
   public montoInicialRequerido!: number;
   public ubicacion?: string | null;
-  public estadoActiva!: boolean;
+  public estadoActiva!: number;  // 0 = false, 1 = true
   public fechaRegistro?: Date;
 }
 
@@ -31,40 +31,46 @@ CajaRegistradora.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idcaja',
     },
     numeroCaja: {
       type: DataTypes.STRING(50),
       allowNull: false,
       unique: true,
+      field: 'numerocaja',
     },
     montoInicialRequerido: {
       type: DataTypes.DECIMAL(14, 2),
       allowNull: false,
+      field: 'montoinicialrequerido',
     },
     ubicacion: {
       type: DataTypes.STRING(150),
       allowNull: true,
+      field: 'ubicacion',
     },
     estadoActiva: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER,  // La BD usa numeric(1,0), no boolean
       allowNull: false,
-      defaultValue: true,
+      defaultValue: 1,
+      field: 'estadoactiva',
     },
     fechaRegistro: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fecharegistro',
     },
   },
   {
     sequelize,
-    tableName: 'cajas_registradoras',
+    tableName: 'caja_registradora',
     timestamps: false,
     indexes: [
       {
         name: 'idx_cajas_numero',
         unique: true,
-        fields: ['numeroCaja'],
+        fields: ['numerocaja'],
       },
     ],
   }

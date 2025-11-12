@@ -31,34 +31,40 @@ CajaFuerte.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idcajafuerte',
     },
     codigo: {
       type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
+      field: 'codigo',
     },
     saldoActual: {
       type: DataTypes.DECIMAL(18, 2),
       allowNull: false,
       defaultValue: 0,
+      field: 'saldoactual',
     },
     limiteMaximo: {
       type: DataTypes.DECIMAL(18, 2),
       allowNull: false,
+      field: 'limitemaximo',
     },
     ubicacion: {
       type: DataTypes.STRING(150),
       allowNull: true,
+      field: 'ubicacion',
     },
     fechaUltimaActualizacion: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fechaultimaactualizacion',
     },
   },
   {
     sequelize,
-    tableName: 'cajas_fuertes',
+    tableName: 'caja_fuerte',
     timestamps: false,
     indexes: [
       {

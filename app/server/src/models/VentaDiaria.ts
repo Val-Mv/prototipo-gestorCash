@@ -10,11 +10,10 @@ export interface VentaDiariaAttributes {
   ventaTotal: number;
   idCaja: number;
   idUsuario: number;
-  idReporte?: number | null;
 }
 
 export interface VentaDiariaCreationAttributes
-  extends Optional<VentaDiariaAttributes, 'idVenta' | 'fecha' | 'idReporte'> {}
+  extends Optional<VentaDiariaAttributes, 'idVenta' | 'fecha' | 'ventaTotal'> {}
 
 export class VentaDiaria
   extends Model<VentaDiariaAttributes, VentaDiariaCreationAttributes>
@@ -28,7 +27,6 @@ export class VentaDiaria
   public ventaTotal!: number;
   public idCaja!: number;
   public idUsuario!: number;
-  public idReporte?: number | null;
 }
 
 VentaDiaria.init(
@@ -37,48 +35,54 @@ VentaDiaria.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idventa',
     },
     fecha: {
       type: DataTypes.DATEONLY,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fecha',
     },
     numeroClientes: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: 'totalclientes',
     },
     totalEfectivo: {
       type: DataTypes.DECIMAL(14, 2),
       allowNull: false,
       defaultValue: 0,
+      field: 'totalefectivo',
     },
     totalTarjeta: {
       type: DataTypes.DECIMAL(14, 2),
       allowNull: false,
       defaultValue: 0,
+      field: 'totaltarjeta',
     },
     ventaTotal: {
-      type: DataTypes.DECIMAL(14, 2),
-      allowNull: false,
-      defaultValue: 0,
+      type: DataTypes.VIRTUAL,
+      get() {
+        const efectivo = parseFloat(this.getDataValue('totalEfectivo') || '0');
+        const tarjeta = parseFloat(this.getDataValue('totalTarjeta') || '0');
+        return efectivo + tarjeta;
+      },
     },
     idCaja: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idcaja',
     },
     idUsuario: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    },
-    idReporte: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
+      field: 'idusuariogeneral',
     },
   },
   {
     sequelize,
-    tableName: 'ventas_diarias',
+    tableName: 'venta_diaria',
     timestamps: false,
     indexes: [
       {
@@ -87,11 +91,11 @@ VentaDiaria.init(
       },
       {
         name: 'idx_ventas_diarias_caja',
-        fields: ['idCaja'],
+        fields: ['idcaja'],
       },
       {
         name: 'idx_ventas_diarias_usuario',
-        fields: ['idUsuario'],
+        fields: ['idusuariogeneral'],
       },
     ],
   }

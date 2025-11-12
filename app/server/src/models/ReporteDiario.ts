@@ -5,13 +5,12 @@ export interface ReporteDiarioAttributes {
   idReporte: number;
   fecha: Date;
   totalVentas: number;
-  totalGastos: number;
   saldoFinal: number;
-  numeroClientesTotal: number;
+  totalClientes: number;
   totalEfectivo: number;
   totalTarjeta: number;
-  resumenDiferencias?: string | null;
-  cantidadDiferencias: number;
+  totalGastosDia: number;
+  totalDiferencias: number;
   idUsuarioGenerador: number;
 }
 
@@ -21,13 +20,12 @@ export interface ReporteDiarioCreationAttributes
     | 'idReporte'
     | 'fecha'
     | 'totalVentas'
-    | 'totalGastos'
     | 'saldoFinal'
-    | 'numeroClientesTotal'
+    | 'totalClientes'
     | 'totalEfectivo'
     | 'totalTarjeta'
-    | 'resumenDiferencias'
-    | 'cantidadDiferencias'
+    | 'totalGastosDia'
+    | 'totalDiferencias'
   > {}
 
 export class ReporteDiario
@@ -37,13 +35,12 @@ export class ReporteDiario
   public idReporte!: number;
   public fecha!: Date;
   public totalVentas!: number;
-  public totalGastos!: number;
   public saldoFinal!: number;
-  public numeroClientesTotal!: number;
+  public totalClientes!: number;
   public totalEfectivo!: number;
   public totalTarjeta!: number;
-  public resumenDiferencias?: string | null;
-  public cantidadDiferencias!: number;
+  public totalGastosDia!: number;
+  public totalDiferencias!: number;
   public idUsuarioGenerador!: number;
 }
 
@@ -53,59 +50,65 @@ ReporteDiario.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idreporte',
     },
     fecha: {
       type: DataTypes.DATEONLY,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fecha',
     },
     totalVentas: {
       type: DataTypes.DECIMAL(18, 2),
       allowNull: false,
       defaultValue: 0,
-    },
-    totalGastos: {
-      type: DataTypes.DECIMAL(18, 2),
-      allowNull: false,
-      defaultValue: 0,
+      field: 'totalventas',
     },
     saldoFinal: {
       type: DataTypes.DECIMAL(18, 2),
       allowNull: false,
       defaultValue: 0,
+      field: 'saldofinal',
     },
-    numeroClientesTotal: {
+    totalClientes: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: 'totalclientestotal',
     },
     totalEfectivo: {
       type: DataTypes.DECIMAL(18, 2),
       allowNull: false,
       defaultValue: 0,
+      field: 'totalefectivototal',
     },
     totalTarjeta: {
       type: DataTypes.DECIMAL(18, 2),
       allowNull: false,
       defaultValue: 0,
+      field: 'totaltarjeta',
     },
-    resumenDiferencias: {
-      type: DataTypes.STRING(1000),
-      allowNull: true,
-    },
-    cantidadDiferencias: {
-      type: DataTypes.INTEGER,
+    totalGastosDia: {
+      type: DataTypes.DECIMAL(18, 2),
       allowNull: false,
       defaultValue: 0,
+      field: 'totalgastosdia',
+    },
+    totalDiferencias: {
+      type: DataTypes.DECIMAL(18, 2),
+      allowNull: false,
+      defaultValue: 0,
+      field: 'totaldiferencias',
     },
     idUsuarioGenerador: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idusuariogenerador',
     },
   },
   {
     sequelize,
-    tableName: 'reportes_diarios',
+    tableName: 'reporte_diario',
     timestamps: false,
     indexes: [
       {
@@ -114,7 +117,7 @@ ReporteDiario.init(
       },
       {
         name: 'idx_reportes_diarios_usuario',
-        fields: ['idUsuarioGenerador'],
+        fields: ['idusuariogenerador'],
       },
     ],
   }

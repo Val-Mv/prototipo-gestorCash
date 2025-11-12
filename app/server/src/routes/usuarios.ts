@@ -16,7 +16,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     const usuario = await Usuario.create({
       ...validatedData,
-      estadoActivo: validatedData.estadoActivo ?? true,
+      estadoActivo: validatedData.estadoActivo ?? 1,  // 1 = true, 0 = false
     });
 
     return res.status(201).json(usuario);
@@ -36,7 +36,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     const where: any = {};
     if (soloActivos === 'true') {
-      where.estadoActivo = true;
+      where.estadoActivo = 1;  // La BD usa numeric(1,0): 1 = true, 0 = false
     }
     if (idRol) {
       where.idRol = Number(idRol);
@@ -105,7 +105,7 @@ router.delete('/:idUsuario', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    await usuario.update({ estadoActivo: false });
+    await usuario.update({ estadoActivo: 0 });  // 0 = false
     return res.json({ mensaje: 'Usuario desactivado correctamente' });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });

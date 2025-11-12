@@ -8,10 +8,10 @@ export interface DiferenciaCajaAttributes {
   montoReal: number;
   diferencia: number;
   justificacion?: string | null;
-  resuelta: boolean;
+  resuelta: number;  // La BD usa numeric(1,0): 0 = false, 1 = true
   idConteo: number;
   idTipoDiferencia: number;
-  idUsuario: number;
+  // idUsuario: number; // Nota: Esta columna no existe en la tabla
 }
 
 export interface DiferenciaCajaCreationAttributes
@@ -27,10 +27,10 @@ export class DiferenciaCaja
   public montoReal!: number;
   public diferencia!: number;
   public justificacion?: string | null;
-  public resuelta!: boolean;
+  public resuelta!: number;  // 0 = false, 1 = true
   public idConteo!: number;
   public idTipoDiferencia!: number;
-  public idUsuario!: number;
+  // public idUsuario!: number; // Nota: Esta columna no existe en la tabla
 }
 
 DiferenciaCaja.init(
@@ -39,49 +39,56 @@ DiferenciaCaja.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'iddiferencia',
     },
     fecha: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fecha',
     },
     montoEsperado: {
       type: DataTypes.DECIMAL(14, 2),
       allowNull: false,
+      field: 'montoesperado',
     },
     montoReal: {
       type: DataTypes.DECIMAL(14, 2),
       allowNull: false,
+      field: 'montoreal',
     },
     diferencia: {
-      type: DataTypes.DECIMAL(14, 2),
-      allowNull: false,
+      type: DataTypes.VIRTUAL,
+      get() {
+        const esperado = parseFloat(this.getDataValue('montoEsperado') || '0');
+        const real = parseFloat(this.getDataValue('montoReal') || '0');
+        return real - esperado;
+      },
     },
     justificacion: {
-      type: DataTypes.STRING(500),
-      allowNull: true,
+      type: DataTypes.VIRTUAL,
+      // Nota: Esta columna no existe en la tabla, se marca como virtual
     },
     resuelta: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER,  // La BD usa numeric(1,0), no boolean
       allowNull: false,
-      defaultValue: false,
+      defaultValue: 0,
+      field: 'resuelta',
     },
     idConteo: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idconteo',
     },
     idTipoDiferencia: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    },
-    idUsuario: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+      field: 'idtipodiferencia',
     },
   },
   {
     sequelize,
-    tableName: 'diferencias_caja',
+    tableName: 'diferencia_caja',
     timestamps: false,
     indexes: [
       {
@@ -90,16 +97,17 @@ DiferenciaCaja.init(
       },
       {
         name: 'idx_diferencias_conteo',
-        fields: ['idConteo'],
+        fields: ['idconteo'],
       },
       {
         name: 'idx_diferencias_tipo',
-        fields: ['idTipoDiferencia'],
+        fields: ['idtipodiferencia'],
       },
-      {
-        name: 'idx_diferencias_usuario',
-        fields: ['idUsuario'],
-      },
+      // Nota: El índice de usuario está comentado porque la columna no existe
+      // {
+      //   name: 'idx_diferencias_usuario',
+      //   fields: ['idusuario'],
+      // },
     ],
   }
 );

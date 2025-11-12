@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { syncDatabase } from './models';
+import { fixSequences } from './seeders/000_fix_sequences';
+import { seedRoles } from './seeders/001_create_roles';
 import gastosRoutes from './routes/gastos';
 import ventasDiariasRoutes from './routes/ventas-diarias';
 import bitacorasRoutes from './routes/bitacoras';
@@ -70,6 +72,13 @@ async function startServer() {
   try {
     // Sincronizar base de datos
     await syncDatabase();
+    
+    // Verificar y corregir secuencias de auto-increment
+    await fixSequences();
+    
+    // Poblar datos iniciales (roles)
+    console.log('🌱 Verificando datos iniciales...');
+    await seedRoles();
     
     // Iniciar servidor
     app.listen(PORT, () => {

@@ -57,7 +57,7 @@ CategoriaGasto.init(
   },
   {
     sequelize,
-    tableName: 'categorias_gasto',
+    tableName: 'categoria_gasto',
     timestamps: false,
     indexes: [
       {
@@ -67,7 +67,7 @@ CategoriaGasto.init(
       },
       {
         name: 'idx_categorias_usuario',
-        fields: ['idUsuarioCreacion'],
+        fields: ['idUsuarioCreacion'],  // La tabla usa camelCase
       },
     ],
   }

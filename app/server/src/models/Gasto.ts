@@ -43,56 +43,68 @@ Gasto.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idgasto',
     },
     fecha: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fecha',
     },
     monto: {
       type: DataTypes.DECIMAL(14, 2),
       allowNull: false,
+      field: 'monto',
     },
     descripcion: {
       type: DataTypes.STRING(500),
       allowNull: false,
+      field: 'descripcion',
     },
     numeroComprobante: {
       type: DataTypes.STRING(200),
       allowNull: false,
+      field: 'numerocomprobante',
     },
     rutaComprobante: {
       type: DataTypes.STRING(400),
       allowNull: false,
+      field: 'rutacomprobante',
     },
     idCaja: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      field: 'idcaja',
     },
     idUsuarioRegistro: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idusuarioregistro',
     },
     idUsuarioAprobacion: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      field: 'idusuarioaprobacion',
     },
     idCajaOrigen: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      field: 'idcajaorigen',
     },
     idCategoria: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idcategoria',
     },
     idEstadoGasto: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idestadogasto',
     },
   },
   {
     sequelize,
-    tableName: 'gastos',
+    tableName: 'gasto',
     timestamps: false,
     indexes: [
       {
@@ -101,7 +113,7 @@ Gasto.init(
       },
       {
         name: 'idx_gastos_estado',
-        fields: ['idEstadoGasto'],
+        fields: ['idestadogasto'],
       },
     ],
   }

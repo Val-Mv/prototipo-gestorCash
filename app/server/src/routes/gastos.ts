@@ -18,6 +18,7 @@ const parseFecha = (fecha?: string | Date) => {
 // Crear un nuevo gasto
 router.post('/', async (req: Request, res: Response) => {
   try {
+    console.log('Raw attribute mapping:', Gasto.rawAttributes.idGasto);
     const validatedData = gastoCreateSchema.parse(req.body);
     const { fecha, ...rest } = validatedData;
 

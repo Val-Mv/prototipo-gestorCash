@@ -4,8 +4,10 @@
   "private": true,
   "description": "Sistema de gestión de caja - Backend Node.js/Express + Frontend Next.js",
   "scripts": {
-    "use:local": "npx cross-env ACTIVE_DB=local USE_SSL=false docker compose up --build",
-    "use:supabase": "npx cross-env ACTIVE_DB=supabase USE_SSL=true docker compose up --build",
+    "use:local": "npx cross-env ACTIVE_DB=local USE_SSL=false docker compose --profile local up --build",
+    "use:supabase": "npx cross-env ACTIVE_DB=supabase USE_SSL=true docker compose --profile supabase up --build",
+    "down": "docker compose down",
+    "down:volumes": "docker compose down -v",
     "dev": "cd app/web && npm run dev",
     "dev:web": "cd app/web && npm run dev",
     "dev:server": "cd app/server && npm run dev",
@@ -20,7 +22,8 @@
     "typecheck:server": "cd app/server && npm run typecheck",
     "install:web": "cd app/web && npm install",
     "install:server": "cd app/server && npm install",
-    "install:all": "npm run install:server && npm run install:web"
+    "install:all": "npm run install:server && npm run install:web",
+    "migration:codigo": "powershell -ExecutionPolicy Bypass -File scripts/apply-migration-codigo.ps1"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

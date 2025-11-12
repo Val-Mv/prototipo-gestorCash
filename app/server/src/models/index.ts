@@ -1,4 +1,5 @@
 import sequelize from '../config/database';
+import { Store } from './Store';
 import { Usuario } from './Usuario';
 import { Rol } from './Rol';
 import { CajaRegistradora } from './CajaRegistradora';
@@ -63,8 +64,10 @@ Conteo.belongsTo(TipoConteo, { foreignKey: 'idTipoConteo', as: 'tipoConteo' });
 ReporteDiario.hasMany(Conteo, { foreignKey: 'idReporte', as: 'conteos' });
 Conteo.belongsTo(ReporteDiario, { foreignKey: 'idReporte', as: 'reporte' });
 
-ReporteDiario.hasMany(VentaDiaria, { foreignKey: 'idReporte', as: 'ventasDiarias' });
-VentaDiaria.belongsTo(ReporteDiario, { foreignKey: 'idReporte', as: 'reporte' });
+// NOTA: Comentado temporalmente porque la columna idReporte no existe en venta_diaria
+// TODO: Agregar columna idreporte a venta_diaria si esta relación es necesaria
+// ReporteDiario.hasMany(VentaDiaria, { foreignKey: 'idReporte', as: 'ventasDiarias' });
+// VentaDiaria.belongsTo(ReporteDiario, { foreignKey: 'idReporte', as: 'reporte' });
 
 Conteo.hasMany(DiferenciaCaja, { foreignKey: 'idConteo', as: 'diferencias' });
 DiferenciaCaja.belongsTo(Conteo, { foreignKey: 'idConteo', as: 'conteo' });
@@ -72,11 +75,14 @@ DiferenciaCaja.belongsTo(Conteo, { foreignKey: 'idConteo', as: 'conteo' });
 TipoDiferencia.hasMany(DiferenciaCaja, { foreignKey: 'idTipoDiferencia', as: 'diferencias' });
 DiferenciaCaja.belongsTo(TipoDiferencia, { foreignKey: 'idTipoDiferencia', as: 'tipoDiferencia' });
 
-Usuario.hasMany(DiferenciaCaja, { foreignKey: 'idUsuario', as: 'diferenciasCaja' });
-DiferenciaCaja.belongsTo(Usuario, { foreignKey: 'idUsuario', as: 'usuarioDiferencia' });
+// NOTA: Comentado temporalmente porque la columna idUsuario no existe en diferencia_caja
+// TODO: Agregar columna idusuario a diferencia_caja si esta relación es necesaria
+// Usuario.hasMany(DiferenciaCaja, { foreignKey: 'idUsuario', as: 'diferenciasCaja' });
+// DiferenciaCaja.belongsTo(Usuario, { foreignKey: 'idUsuario', as: 'usuarioDiferencia' });
 
 // Exportar modelos
 export {
+  Store,
   Usuario,
   Rol,
   CajaRegistradora,
@@ -98,10 +104,99 @@ export const syncDatabase = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ Conexión a la base de datos establecida correctamente.');
-    
-    // Sincronizar modelos (crear tablas si no existen)
-    await sequelize.sync({ alter: false });
-    console.log('✅ Modelos sincronizados con la base de datos.');
+    console.log('Database connection established');
+
+    const shouldSync = process.env.SHOULD_SYNC_DB === 'true';
+    const alterSync = process.env.SHOULD_SYNC_DB_ALTER === 'true';
+    const forceSync = process.env.SHOULD_SYNC_DB_FORCE === 'true';
+
+    if (forceSync && alterSync) {
+      console.warn('⚠️  Ignorando SHOULD_SYNC_DB_FORCE porque SHOULD_SYNC_DB_ALTER está activo.');
+    }
+
+    const queryInterface = sequelize.getQueryInterface();
+    const normalizeTableName = (table: unknown): string => {
+      const extractName = (value: string | undefined): string => {
+        if (!value) {
+          return '';
+        }
+
+        const lower = value.toLowerCase();
+        const cleaned = lower.replace(/["'`]/g, '');
+        const parts = cleaned.split('.');
+        return parts[parts.length - 1] ?? '';
+      };
+
+      if (typeof table === 'string') {
+        return extractName(table);
+      }
+
+      if (table && typeof table === 'object') {
+        const candidate = (table as { tableName?: string; schema?: string }).tableName;
+        return extractName(candidate);
+      }
+
+      return '';
+    };
+
+    try {
+      const existingTablesRaw = await queryInterface.showAllTables();
+      const existingTables = Array.isArray(existingTablesRaw) ? existingTablesRaw : [];
+      const hasStoreTable = (existingTables as Array<unknown>)
+        .map(normalizeTableName)
+        .some((tableName) => tableName === 'store');
+
+      if (!hasStoreTable) {
+        console.warn('⚠️  La tabla "store" no existe. Creándola automáticamente...');
+        await Store.sync({ alter: false });
+        console.log('✅ Tabla "store" creada correctamente.');
+      }
+
+      const shouldSeedDefaults =
+        (process.env.SEED_DEFAULT_DATA ??
+          ((process.env.NODE_ENV ?? 'development') !== 'production' ? 'true' : 'false')) === 'true';
+
+      if (shouldSeedDefaults) {
+        const defaultStoreId = process.env.DEFAULT_STORE_ID ?? 'berwyn-il';
+        const defaultStoreName = process.env.DEFAULT_STORE_NAME ?? 'Dollar Tree Berwyn';
+        const defaultStoreCode = process.env.DEFAULT_STORE_CODE ?? 'DT-BYW';
+
+        const [store, created] = await Store.findOrCreate({
+          where: { id: defaultStoreId },
+          defaults: {
+            id: defaultStoreId,
+            name: defaultStoreName,
+            code: defaultStoreCode,
+            active: true,
+          },
+        });
+
+        if (created) {
+          console.log(`✅ Datos iniciales cargados: tienda "${store.name}" (${store.id}).`);
+        } else {
+          console.log(`ℹ️  Tienda por defecto "${store.name}" ya existe (ID ${store.id}).`);
+        }
+      } else {
+        console.log('ℹ️  SEED_DEFAULT_DATA deshabilitado. No se crearán datos iniciales.');
+      }
+    } catch (tableError) {
+      console.error('❌ No se pudo verificar/crear la tabla "store":', tableError);
+      throw tableError;
+    }
+
+    if (shouldSync || alterSync || forceSync) {
+      await sequelize.sync({
+        alter: alterSync,
+        force: forceSync && !alterSync,
+      });
+      console.log(
+        `✅ Modelos sincronizados con la base de datos (alter=${alterSync ? 'sí' : 'no'}, force=${
+          forceSync && !alterSync ? 'sí' : 'no'
+        }).`
+      );
+    } else {
+      console.log('ℹ️  SHOULD_SYNC_DB/ALTER/FORCE no habilitados. Se omite la sincronización automática.');
+    }
   } catch (error) {
     console.error('❌ Error al conectar con la base de datos:', error);
     throw error;
@@ -110,6 +205,7 @@ export const syncDatabase = async () => {
 
 export { sequelize };
 export default {
+  Store,
   Usuario,
   Rol,
   CajaRegistradora,

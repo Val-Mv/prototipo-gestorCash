@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -8,38 +8,37 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, ShieldAlert, CheckCircle, AlertTriangle } from 'lucide-react';
-import { mockRegisters, mockExpenses } from '@/lib/data';
-import type { AnomalyDetectionOutput } from '@/lib/ai/anomaly-detection';
-import { detectAnomaliesAndAlert } from '@/lib/ai/anomaly-detection';
+import type { SalidaDeteccionAnomalias } from '@/lib/ai/anomaly-detection';
+import { detectarAnomaliasYAlertar } from '@/lib/ai/anomaly-detection';
 import { useAuth } from '@/lib/hooks/use-auth';
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-};
-
-const registerFields = mockRegisters
-  .filter(r => r.active)
-  .reduce((acc, register) => {
-    acc[`register${register.number}`] = z.coerce.number().min(0, 'Debe ser un número positivo');
-    return acc;
-  }, {} as Record<string, z.ZodNumber>);
+import { getActiveCashRegisters, type CashRegister } from '@/lib/api/cash-registers';
+import { obtenerGastos } from '@/lib/api/expenses';
+import type { Gasto } from '@/lib/types';
 
 const formSchema = z.object({
   safe: z.coerce.number().min(0, 'Debe ser un número positivo'),
   salesCash: z.coerce.number().min(0, 'Debe ser un número positivo'),
   salesCard: z.coerce.number().min(0, 'Debe ser un número positivo'),
   customerCount: z.coerce.number().int().min(0, 'Debe ser un número entero positivo'),
-  ...registerFields,
 });
 
-type FormData = z.infer<typeof formSchema>;
+type BaseFormData = z.infer<typeof formSchema>;
+type FormData = BaseFormData & Record<string, number>;
+
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+
+const nombreCampoRegistro = (register: CashRegister) => `register_${register.idCaja}`;
 
 export default function ClosingPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AnomalyDetectionOutput | null>(null);
+  const [result, setResult] = useState<SalidaDeteccionAnomalias | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [totalDifference, setTotalDifference] = useState<number | null>(null);
+  const [registers, setRegisters] = useState<CashRegister[]>([]);
+  const [gastos, setGastos] = useState<Gasto[]>([]);
+  const [defaultsApplied, setDefaultsApplied] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -48,64 +47,97 @@ export default function ClosingPage() {
       salesCash: 0,
       salesCard: 0,
       customerCount: 0,
-      ...mockRegisters.filter(r => r.active).reduce((acc, r) => ({ ...acc, [`register${r.number}`]: 75 }), {}),
     },
   });
 
-  // Calcular diferencia en tiempo real
-  const watchedValues = form.watch();
-  const [currentDifference, setCurrentDifference] = useState(0);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [registerData, gastosData] = await Promise.all([
+          getActiveCashRegisters(true),
+          obtenerGastos({ limit: 50 }),
+        ]);
+        setRegisters(registerData.filter((r) => r.estadoActiva));
+        setGastos(gastosData);
+      } catch (err) {
+        console.error('Error cargando datos para cierre:', err);
+      }
+    };
+
+    loadData();
+  }, []);
 
   useEffect(() => {
-    const totalClosing = Object.keys(watchedValues)
-      .filter(k => k.startsWith('register'))
-      .reduce((sum, key) => sum + (Number(watchedValues[key as keyof FormData]) || 0), 0);
-    const openingAmount = mockRegisters.filter(r => r.active).length * 75;
-    const calculated = (totalClosing + (Number(watchedValues.safe) || 0)) - (openingAmount + (Number(watchedValues.salesCash) || 0));
-    setCurrentDifference(calculated);
-  }, [watchedValues]);
+    if (registers.length === 0 || defaultsApplied) {
+      return;
+    }
+
+    const nuevosValores: Partial<FormData> = {};
+    registers.forEach((register) => {
+      nuevosValores[nombreCampoRegistro(register)] = Number(register.montoInicialRequerido) || 0;
+    });
+
+    form.reset({
+      safe: 0,
+      salesCash: 0,
+      salesCard: 0,
+      customerCount: 0,
+      ...nuevosValores,
+    });
+    setDefaultsApplied(true);
+  }, [registers, form, defaultsApplied]);
+
+  const watchedValues = form.watch();
+  const currentDifference = useMemo(() => {
+    const totalClosing = registers.reduce((sum, register) => {
+      const key = nombreCampoRegistro(register);
+      return sum + (Number(watchedValues[key]) || 0);
+    }, 0);
+
+    const openingAmount = registers.reduce(
+      (sum, register) => sum + (Number(register.montoInicialRequerido) || 0),
+      0
+    );
+
+    return (
+      totalClosing +
+      (Number(watchedValues.safe) || 0) -
+      (openingAmount + (Number(watchedValues.salesCash) || 0))
+    );
+  }, [registers, watchedValues]);
 
   async function onSubmit(values: FormData) {
     setLoading(true);
     setError(null);
     setResult(null);
 
-    const totalClosing = Object.keys(values)
-      .filter(k => k.startsWith('register'))
-      .reduce((sum, key) => sum + values[key as keyof FormData], 0);
-      
-    const openingAmount = mockRegisters.filter(r => r.active).length * 75;
-    const calculatedDifference = (totalClosing + values.safe) - (openingAmount + values.salesCash);
+    const totalClosing = registers.reduce((sum, register) => {
+      const key = nombreCampoRegistro(register);
+      return sum + (Number(values[key]) || 0);
+    }, 0);
+
+    const openingAmount = registers.reduce(
+      (sum, register) => sum + (Number(register.montoInicialRequerido) || 0),
+      0
+    );
+
+    const calculatedDifference = totalClosing + values.safe - (openingAmount + values.salesCash);
     setTotalDifference(calculatedDifference);
-    
-    // Registrar timestamp y usuario responsable
-    const timestamp = new Date().getTime();
-    const closingData = {
-      ...values,
-      timestamp,
-      userId: user?.uid || 'unknown',
-      userName: user?.displayName || 'Usuario desconocido',
-      date: new Date().toISOString().split('T')[0],
-      totalDifference: calculatedDifference
-    };
-    console.log("Closing data with timestamp and user:", closingData);
 
     try {
-      const res = await detectAnomaliesAndAlert({
-        storeId: 'berwyn-il',
-        date: new Date().toISOString().split('T')[0],
-        expenses: mockExpenses.map(e => ({
-            expenseId: e.id,
-            category: e.category,
-            item: e.item,
-            amount: e.amount,
-            description: e.description,
-            attachmentUrl: e.attachmentUrl || null,
+      const res = await detectarAnomaliasYAlertar({
+        idTienda: 'berwyn-il',
+        fecha: new Date().toISOString().split('T')[0],
+        gastos: gastos.map((gasto) => ({
+          idGasto: gasto.idGasto,
+          idCategoria: gasto.idCategoria,
+          monto: Number(gasto.monto),
+          descripcion: gasto.descripcion,
         })),
-        salesCash: values.salesCash,
-        salesCard: values.salesCard,
-        totalDifference: calculatedDifference,
-        customerCount: values.customerCount
+        ventasEfectivo: values.salesCash,
+        ventasTarjeta: values.salesCard,
+        diferenciaTotal: calculatedDifference,
+        cantidadClientes: values.customerCount,
       });
       setResult(res);
     } catch (err) {
@@ -122,28 +154,37 @@ export default function ClosingPage() {
           <Card>
             <CardHeader>
               <CardTitle className="font-headline">Cierre de Fin de Día</CardTitle>
-              <CardDescription>Ingresa los conteos finales para todos los registros y la caja fuerte. El sistema calculará las discrepancias y ejecutará la detección de anomalías.</CardDescription>
+              <CardDescription>
+                Ingresa los conteos finales para todos los registros y la caja fuerte. El sistema
+                calculará las discrepancias y ejecutará la detección de anomalías.
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">Conteos de Registros</h3>
-                {mockRegisters.filter(r => r.active).map(register => (
-                  <FormField
-                    key={register.id}
-                    control={form.control}
-                    name={`register${register.number}` as keyof FormData}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Registro #{register.number}</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="75.00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-                 <FormField
+                {registers.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No se encontraron cajas registradoras activas.
+                  </p>
+                ) : (
+                  registers.map((register) => (
+                    <FormField
+                      key={register.idCaja}
+                      control={form.control}
+                      name={nombreCampoRegistro(register) as any}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Registro #{register.numeroCaja}</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="0.00" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))
+                )}
+                <FormField
                   control={form.control}
                   name="safe"
                   render={({ field }) => (
@@ -198,28 +239,29 @@ export default function ClosingPage() {
                     </FormItem>
                   )}
                 />
-                {/* Validación de totales vs registros de caja */}
                 {form.watch('salesCash') > 0 && form.watch('salesCard') > 0 && (
                   <div className="mt-4 p-3 bg-muted rounded-md">
                     <p className="text-sm font-medium">Validación de Totales:</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Ventas Totales: {formatCurrency(form.watch('salesCash') + form.watch('salesCard'))}
+                      Ventas Totales:{' '}
+                      {formatCurrency(form.watch('salesCash') + form.watch('salesCard'))}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Total de Registros Activos: {mockRegisters.filter(r => r.active).length}
+                      Total de Registros Activos: {registers.length}
                     </p>
                   </div>
                 )}
               </div>
             </CardContent>
             <CardFooter className="flex-col items-start gap-4">
-              {(Math.abs(currentDifference) > 5) && (
+              {Math.abs(currentDifference) > 5 && (
                 <Alert variant="destructive" className="w-full">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Alerta: Diferencia Significativa</AlertTitle>
                   <AlertDescription>
-                    La diferencia calculada es de {currentDifference > 0 ? '+' : ''}{formatCurrency(currentDifference)}, 
-                    que excede el umbral permitido de $5.00. Por favor, verifica los conteos.
+                    La diferencia calculada es de {currentDifference > 0 ? '+' : ''}
+                    {formatCurrency(currentDifference)}, que excede el umbral permitido de $5.00. Por
+                    favor, verifica los conteos.
                   </AlertDescription>
                 </Alert>
               )}
@@ -237,29 +279,44 @@ export default function ClosingPage() {
               {result && (
                 <Card className="w-full">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><ShieldAlert /> Análisis Completado</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <ShieldAlert /> Análisis Completado
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {result.anomalies.length > 0 ? (
+                    {result.anomalias.length > 0 ? (
                       <>
-                        <Alert variant={result.shouldSendAlert ? 'destructive' : 'default'}>
+                        <Alert variant={result.debeEnviarAlerta ? 'destructive' : 'default'}>
                           <AlertTriangle className="h-4 w-4" />
-                          <AlertTitle>{result.anomalies.length} {result.anomalies.length === 1 ? 'Anomalía' : 'Anomalías'} Detectada{result.anomalies.length === 1 ? '' : 's'}</AlertTitle>
+                          <AlertTitle>
+                            {result.anomalias.length}{' '}
+                            {result.anomalias.length === 1 ? 'Anomalía' : 'Anomalías'} detectada
+                            {result.anomalias.length === 1 ? '' : 's'}
+                          </AlertTitle>
                           <AlertDescription>
                             <ul className="list-disc pl-5 space-y-1 mt-2">
-                                {result.anomalies.map((anomaly, i) => <li key={i}><strong>{anomaly.type}:</strong> {anomaly.message}</li>)}
+                              {result.anomalias.map((anomalia, i) => (
+                                <li key={i}>
+                                  <strong>{anomalia.tipo}:</strong> {anomalia.mensaje}
+                                </li>
+                              ))}
                             </ul>
                           </AlertDescription>
                         </Alert>
-                        {result.shouldSendAlert && (
-                            <p className="mt-4 text-sm font-semibold text-destructive">Se ha enviado automáticamente una alerta a la gerencia debido a la gravedad de las anomalías.</p>
+                        {result.debeEnviarAlerta && (
+                          <p className="mt-4 text-sm font-semibold text-destructive">
+                            Se ha enviado automáticamente una alerta a la gerencia debido a la
+                            gravedad de las anomalías.
+                          </p>
                         )}
                       </>
                     ) : (
                       <Alert>
                         <CheckCircle className="h-4 w-4" />
                         <AlertTitle>No se Detectaron Anomalías</AlertTitle>
-                        <AlertDescription>El análisis no encontró problemas significativos con los datos de hoy.</AlertDescription>
+                        <AlertDescription>
+                          El análisis no encontró problemas significativos con los datos de hoy.
+                        </AlertDescription>
                       </Alert>
                     )}
                   </CardContent>

@@ -6,6 +6,7 @@ export interface AppUser {
   displayName: string | null;
   role: UserRole;
   storeId?: string;
+  idUsuario?: number;
 }
 
 export interface Store {
@@ -42,18 +43,19 @@ export interface Count {
   userName: string; // Nombre del usuario responsable
 }
 
-export interface Expense {
-  id: string;
-  category: 'store_supplies' | 'maintenance' | 'paperwork' | 'transport';
-  item: string;
-  amount: number;
-  description: string;
-  attachmentUrl?: string;
-  createdAt: number;
-  storeId?: string; // ID de la tienda donde se realizó el gasto
-  registerId?: string; // ID del registro asociado (opcional)
-  date?: string; // Fecha del gasto (YYYY-MM-DD)
-  userId?: string; // ID del usuario que registró el gasto
+export interface Gasto {
+  idGasto: number;
+  fecha: string;
+  monto: number;
+  descripcion: string;
+  numeroComprobante: string;
+  rutaComprobante?: string | null;
+  idCaja?: number | null;
+  idUsuarioRegistro: number;
+  idUsuarioAprobacion?: number | null;
+  idCajaOrigen?: number | null;
+  idCategoria: number;
+  idEstadoGasto: number;
 }
 
 export interface DailyReport {
