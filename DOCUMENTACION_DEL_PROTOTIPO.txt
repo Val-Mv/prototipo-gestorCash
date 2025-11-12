@@ -1,0 +1,895 @@
+FASE V - DOCUMENTACIÓN DEL PROTOTIPO DE SISTEMA DE INFORMACIÓN DESARROLLADO
+
+================================================================================
+5.1 MANUAL DEL SISTEMA
+================================================================================
+
+5.1.1 INTRODUCCIÓN
+--------------------------------------------------------------------------------
+
+El presente manual describe el prototipo del sistema de información GestorCash,
+desarrollado para la gestión digital de caja menor en tiendas minoristas. Este
+documento proporciona información detallada sobre los recursos necesarios, la
+instalación, configuración y operación del sistema.
+
+GestorCash es una solución web que permite a los administradores de tiendas
+registrar y monitorear operaciones de caja, incluyendo conteos de apertura y
+cierre, registro de gastos, generación de reportes y detección de anomalías
+mediante inteligencia artificial.
+
+Este manual está dirigido a:
+- Administradores de sistemas que realizarán la instalación
+- Personal técnico encargado de la configuración
+- Usuarios finales que operarán el sistema
+- Personal de soporte técnico
+
+Versión del Sistema: 1.0.0
+Fecha de Documentación: 2024
+
+
+5.1.2 DESCRIPCIÓN DEL SISTEMA
+--------------------------------------------------------------------------------
+
+GestorCash es un sistema de información web diseñado para la administración
+digital de caja menor en establecimientos minoristas. El sistema permite:
+
+FUNCIONALIDADES PRINCIPALES:
+
+1. Autenticación y Autorización de Usuarios
+   - Sistema de login seguro con control de acceso basado en roles
+   - Roles disponibles: District Manager (DM), Store Manager (SM), Assistant
+     Store Manager (ASM)
+   - Cada rol tiene permisos específicos según su nivel de responsabilidad
+
+2. Registro de Conteo de Apertura de Caja
+   - Registro del conteo inicial de efectivo para cada caja registradora
+   - Alerta automática si el monto inicial difiere del esperado (USD 75)
+   - Registro automático de timestamp y usuario responsable
+
+3. Seguimiento de Gastos
+   - Registro de gastos por categoría (suministros, mantenimiento, etc.)
+   - Soporte para adjuntar comprobantes (imágenes)
+   - Validación y autorización basada en roles
+   - Verificación de veracidad de imágenes mediante IA generativa
+
+4. Reconciliación de Cierre de Día
+   - Registro del conteo final de efectivo para cada caja y caja fuerte
+   - Cálculo automático de diferencias (over/short)
+   - Alertas automáticas si la diferencia excede USD 5
+   - Generación de reporte de cierre diario
+
+5. Reportes Diarios y Semanales
+   - Generación de reportes sobre ventas (efectivo/tarjeta)
+   - Conteo de clientes
+   - Resumen de gastos y discrepancias
+   - Exportación a formatos CSV/XLSX
+
+6. Detección de Anomalías y Alertas
+   - Sistema de detección de patrones inusuales en gastos
+   - Identificación de discrepancias en efectivo
+   - Uso de reglas basadas en datos históricos
+   - Envío automático de alertas por correo electrónico a la gerencia
+
+7. Gestión de Usuarios y Tiendas
+   - Interfaz administrativa (solo para DM/SM)
+   - Gestión de cuentas de usuario
+   - Configuración de roles
+   - Configuración de tiendas y cajas registradoras
+
+ARQUITECTURA DEL SISTEMA:
+
+El sistema está construido con una arquitectura de tres capas:
+
+- Frontend: Aplicación web desarrollada con React 18 y TypeScript, utilizando
+  Vite como herramienta de construcción. Interfaz de usuario responsiva con
+  diseño moderno basado en componentes de Radix UI y estilos con Tailwind CSS.
+
+- Backend: API REST desarrollada con Node.js, Express y TypeScript. Utiliza
+  Sequelize como ORM para la gestión de base de datos. Soporta múltiples
+  perfiles de conexión (local y Supabase).
+
+- Base de Datos: PostgreSQL 16 como sistema de gestión de base de datos
+  principal. Soporta tanto instalaciones locales (Docker) como servicios
+  en la nube (Supabase).
+
+
+5.1.3 RECURSOS HARDWARE
+--------------------------------------------------------------------------------
+
+REQUISITOS MÍNIMOS DEL SERVIDOR:
+
+Para una instalación en servidor dedicado:
+
+- Procesador: CPU de 2 núcleos a 2.0 GHz o superior
+- Memoria RAM: 4 GB mínimo (8 GB recomendado)
+- Almacenamiento: 20 GB de espacio en disco disponible
+- Red: Conexión a Internet estable con ancho de banda mínimo de 10 Mbps
+- Sistema Operativo: Linux (Ubuntu 20.04 LTS o superior, CentOS 7+, Debian 10+)
+  o Windows Server 2016 o superior
+
+REQUISITOS PARA DESARROLLO LOCAL:
+
+- Procesador: CPU de 2 núcleos a 1.5 GHz o superior
+- Memoria RAM: 8 GB mínimo (16 GB recomendado)
+- Almacenamiento: 10 GB de espacio en disco disponible
+- Sistema Operativo: Windows 10/11, macOS 10.15+, o Linux (Ubuntu 20.04+)
+- Docker Desktop instalado (para contenedores)
+
+REQUISITOS DEL CLIENTE (NAVEGADOR):
+
+- Navegador web moderno con soporte para ES2020:
+  * Google Chrome 90 o superior
+  * Mozilla Firefox 88 o superior
+  * Microsoft Edge 90 o superior
+  * Safari 14 o superior
+- Resolución de pantalla: Mínimo 1280x720 píxeles (1920x1080 recomendado)
+- Conexión a Internet: Para acceso al sistema en producción
+
+
+5.1.4 RECURSOS SOFTWARE
+--------------------------------------------------------------------------------
+
+SOFTWARE BASE REQUERIDO:
+
+1. Node.js
+   - Versión: 18.0.0 o superior
+   - Descarga: https://nodejs.org/
+   - Incluye npm (Node Package Manager)
+
+2. Docker y Docker Compose
+   - Docker Engine: 20.10 o superior
+   - Docker Compose: v2.0 o superior
+   - Descarga: https://www.docker.com/products/docker-desktop
+   - Nota: Docker Desktop incluye tanto Docker Engine como Docker Compose
+
+3. Git
+   - Versión: 2.30 o superior
+   - Descarga: https://git-scm.com/
+   - Requerido para clonar el repositorio del proyecto
+
+4. PostgreSQL (Opcional para desarrollo local)
+   - Versión: 16.0 o superior
+   - Solo necesario si no se utiliza Docker para la base de datos
+   - Descarga: https://www.postgresql.org/download/
+
+SOFTWARE DEL SISTEMA:
+
+El sistema GestorCash utiliza las siguientes tecnologías y dependencias:
+
+Backend (app/server):
+- Express 4.18.2: Framework web para Node.js
+- TypeScript 5.3.3: Lenguaje de programación tipado
+- Sequelize 6.35.2: ORM para gestión de base de datos
+- PostgreSQL Driver (pg 8.11.3): Controlador para PostgreSQL
+- SQLite3 5.1.6: Controlador para SQLite (desarrollo)
+- Zod 3.22.4: Biblioteca de validación de esquemas
+- CORS 2.8.5: Middleware para Cross-Origin Resource Sharing
+- dotenv 16.3.1: Gestión de variables de entorno
+
+Frontend (app/web):
+- React 18.3.1: Biblioteca para construcción de interfaces de usuario
+- TypeScript 5: Lenguaje de programación tipado
+- Vite 5.4.0: Herramienta de construcción y desarrollo
+- React Router DOM 6.28.0: Enrutamiento para aplicaciones React
+- Tailwind CSS 3.4.1: Framework de CSS utility-first
+- Radix UI: Componentes de interfaz accesibles
+- Recharts 2.15.1: Biblioteca para gráficos
+- React Hook Form 7.54.2: Gestión de formularios
+- Zod 3.25.76: Validación de esquemas
+- XLSX 0.18.5: Exportación a Excel
+
+HERRAMIENTAS DE DESARROLLO (Opcional):
+
+- Visual Studio Code: Editor de código recomendado
+- Postman o Insomnia: Para probar endpoints de la API
+- DBeaver o TablePlus: Cliente gráfico para PostgreSQL
+- Git: Control de versiones
+
+
+5.1.5 INSTALACIÓN Y CONFIGURACIÓN DEL SOFTWARE BASE
+--------------------------------------------------------------------------------
+
+PASO 1: INSTALACIÓN DE NODE.JS
+
+Windows:
+1. Descargar el instalador desde https://nodejs.org/
+2. Ejecutar el instalador y seguir las instrucciones
+3. Verificar la instalación abriendo PowerShell y ejecutando:
+   node --version
+   npm --version
+
+Linux (Ubuntu/Debian):
+1. Actualizar el sistema:
+   sudo apt update && sudo apt upgrade -y
+2. Instalar Node.js usando NodeSource:
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt install -y nodejs
+3. Verificar la instalación:
+   node --version
+   npm --version
+
+macOS:
+1. Usando Homebrew:
+   brew install node@18
+2. O descargar el instalador desde https://nodejs.org/
+3. Verificar la instalación:
+   node --version
+   npm --version
+
+PASO 2: INSTALACIÓN DE DOCKER Y DOCKER COMPOSE
+
+Windows/macOS:
+1. Descargar Docker Desktop desde https://www.docker.com/products/docker-desktop
+2. Ejecutar el instalador y seguir las instrucciones
+3. Reiniciar el equipo si es necesario
+4. Verificar la instalación:
+   docker --version
+   docker compose version
+
+Linux:
+1. Instalar Docker Engine:
+   curl -fsSL https://get.docker.com -o get-docker.sh
+   sudo sh get-docker.sh
+2. Agregar el usuario al grupo docker:
+   sudo usermod -aG docker $USER
+3. Instalar Docker Compose:
+   sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   sudo chmod +x /usr/local/bin/docker-compose
+4. Verificar la instalación:
+   docker --version
+   docker compose version
+
+PASO 3: INSTALACIÓN DE GIT
+
+Windows:
+1. Descargar desde https://git-scm.com/download/win
+2. Ejecutar el instalador con opciones por defecto
+3. Verificar: git --version
+
+Linux:
+   sudo apt install git
+
+macOS:
+   brew install git
+
+PASO 4: VERIFICACIÓN DEL ENTORNO
+
+Ejecutar los siguientes comandos para verificar que todo está instalado
+correctamente:
+
+   node --version    # Debe mostrar v18.x.x o superior
+   npm --version     # Debe mostrar 9.x.x o superior
+   docker --version  # Debe mostrar Docker version 20.10 o superior
+   git --version     # Debe mostrar git version 2.30 o superior
+
+
+5.1.6 CONFIGURACIÓN DEL SISTEMA
+--------------------------------------------------------------------------------
+
+PASO 1: OBTENER EL CÓDIGO FUENTE
+
+1. Clonar el repositorio del proyecto:
+   git clone <URL_DEL_REPOSITORIO>
+   cd prototipo-gestorCash
+
+2. Verificar la estructura del proyecto:
+   - app/server/ (Backend)
+   - app/web/ (Frontend)
+   - docker-compose.yml (Configuración de Docker)
+
+PASO 2: CONFIGURAR VARIABLES DE ENTORNO
+
+Para Desarrollo Local:
+
+1. Navegar a la carpeta del servidor:
+   cd app/server
+
+2. Crear el archivo .env basándose en el template:
+   (Copiar ENV_TEMPLATE.txt a .env si existe, o crear uno nuevo)
+
+3. Configurar el archivo .env con los siguientes valores:
+
+   PORT=8000
+   NODE_ENV=development
+   
+   # Perfil de base de datos
+   ACTIVE_DB=local
+   
+   # Base de datos local (PostgreSQL en Docker)
+   LOCAL_DATABASE_URL=postgresql://admin:admin@localhost:5432/gestorcash
+   
+   # SSL deshabilitado para local
+   USE_SSL=false
+   DB_SSL=false
+   
+   # Sincronización de base de datos (solo desarrollo)
+   SHOULD_SYNC_DB=true
+   SHOULD_SYNC_DB_ALTER=false
+   SHOULD_SYNC_DB_FORCE=false
+   
+   # Datos iniciales
+   SEED_DEFAULT_DATA=true
+   DEFAULT_STORE_ID=berwyn-il
+   DEFAULT_STORE_NAME=Dollar Tree Berwyn
+   DEFAULT_STORE_CODE=DT-BYW
+
+Para Producción (Supabase):
+
+1. Obtener las credenciales de Supabase desde el panel de administración
+
+2. Configurar el archivo .env:
+
+   PORT=8000
+   NODE_ENV=production
+   
+   # Perfil de base de datos
+   ACTIVE_DB=supabase
+   
+   # URL completa de Supabase
+   SUPABASE_DATABASE_URL=postgresql://usuario:contraseña@host:5432/database
+   
+   # SSL habilitado para Supabase
+   USE_SSL=true
+   DB_SSL=true
+   
+   # Sincronización deshabilitada en producción
+   SHOULD_SYNC_DB=false
+   SHOULD_SYNC_DB_ALTER=false
+   SHOULD_SYNC_DB_FORCE=false
+   
+   # Datos iniciales
+   SEED_DEFAULT_DATA=false
+
+PASO 3: CONFIGURAR EL FRONTEND
+
+1. Navegar a la carpeta del frontend:
+   cd app/web
+
+2. Crear archivo .env.local (si es necesario):
+   VITE_API_URL=http://localhost:8000
+
+Nota: El frontend puede configurarse para apuntar a diferentes URLs de API
+según el entorno (desarrollo, producción).
+
+
+5.1.7 INSTALACIÓN DEL SISTEMA
+--------------------------------------------------------------------------------
+
+MÉTODO 1: INSTALACIÓN CON DOCKER COMPOSE (RECOMENDADO)
+
+Este método instala tanto la base de datos como el backend en contenedores Docker.
+
+Para Desarrollo Local:
+
+1. Desde la raíz del proyecto, ejecutar:
+   npm run use:local
+
+   Este comando:
+   - Levanta el contenedor de PostgreSQL (puerto 5432)
+   - Levanta el backend en Docker (puerto 8000)
+   - Crea las tablas necesarias en la base de datos
+   - Sembra datos iniciales si está configurado
+
+2. Verificar que los servicios estén corriendo:
+   docker compose ps
+
+   Debe mostrar dos contenedores: gestor-postgres y gestor-backend
+
+3. Verificar los logs del backend:
+   docker logs gestor-backend
+
+   Debe mostrar mensajes como:
+   "✅ Conectado exitosamente a la base de datos"
+   "Database connection established"
+
+4. Probar el endpoint de salud:
+   Abrir en navegador: http://localhost:8000/api/health
+   Debe responder: {"status":"healthy"}
+
+Para Producción con Supabase:
+
+1. Asegurarse de que el archivo .env esté configurado para Supabase
+
+2. Desde la raíz del proyecto, ejecutar:
+   npm run use:supabase
+
+   Este comando:
+   - Levanta solo el backend en Docker (no levanta PostgreSQL local)
+   - Conecta el backend a Supabase
+
+3. Verificar la conexión:
+   docker logs gestor-backend
+
+4. Si las tablas no existen, habilitar temporalmente la sincronización:
+   En .env: SHOULD_SYNC_DB=true
+   Reiniciar: docker restart gestor-backend
+
+MÉTODO 2: INSTALACIÓN SIN DOCKER (DESARROLLO)
+
+Este método permite ejecutar el backend directamente sin contenedores.
+
+1. Instalar dependencias del backend:
+   cd app/server
+   npm install
+
+2. Levantar PostgreSQL en Docker (solo la base de datos):
+   Desde la raíz: docker compose --profile local up db -d
+
+3. Ejecutar el backend en modo desarrollo:
+   npm run dev
+
+   El backend estará disponible en: http://localhost:8000
+
+4. En otra terminal, instalar y ejecutar el frontend:
+   cd app/web
+   npm install
+   npm run dev
+
+   El frontend estará disponible en: http://localhost:5173 (o el puerto que
+   Vite asigne)
+
+MÉTODO 3: INSTALACIÓN MANUAL COMPLETA
+
+1. Instalar dependencias del proyecto raíz:
+   npm install
+
+2. Instalar dependencias del backend:
+   npm run install:server
+   O manualmente: cd app/server && npm install
+
+3. Instalar dependencias del frontend:
+   npm run install:web
+   O manualmente: cd app/web && npm install
+
+4. Configurar la base de datos PostgreSQL manualmente:
+   - Crear la base de datos: CREATE DATABASE gestorcash;
+   - Ejecutar las migraciones si existen en db/migrations/
+
+5. Ejecutar el backend:
+   cd app/server
+   npm run build
+   npm start
+
+6. Ejecutar el frontend:
+   cd app/web
+   npm run build
+   npm run preview
+
+VERIFICACIÓN POST-INSTALACIÓN:
+
+1. Verificar que el backend responde:
+   curl http://localhost:8000/api/health
+   O abrir en navegador: http://localhost:8000/api/health
+
+2. Verificar que se pueden listar usuarios:
+   curl http://localhost:8000/api/usuarios
+   Debe retornar un array (vacío si no hay datos)
+
+3. Verificar que el frontend carga correctamente:
+   Abrir http://localhost:5173 (o el puerto asignado)
+   Debe mostrar la página de login o dashboard
+
+
+5.1.8 VERIFICACIÓN DEL PROCESO DE INSTALACIÓN
+--------------------------------------------------------------------------------
+
+CHECKLIST DE VERIFICACIÓN:
+
+1. VERIFICACIÓN DE SERVICIOS DOCKER:
+   [ ] Docker está corriendo
+   [ ] Contenedores están activos (docker compose ps)
+   [ ] No hay errores en los logs (docker logs gestor-backend)
+
+2. VERIFICACIÓN DE CONECTIVIDAD DE BASE DE DATOS:
+   [ ] Backend se conecta a la base de datos
+   [ ] Logs muestran "Database connection established"
+   [ ] Tablas se crearon correctamente (verificar con cliente PostgreSQL)
+
+3. VERIFICACIÓN DE ENDPOINTS DE LA API:
+   [ ] GET /api/health retorna {"status":"healthy"}
+   [ ] GET /api/usuarios retorna array (puede estar vacío)
+   [ ] GET /api/stores retorna array
+   [ ] GET /api/gastos retorna array
+
+4. VERIFICACIÓN DEL FRONTEND:
+   [ ] Frontend se compila sin errores
+   [ ] Frontend se conecta al backend
+   [ ] Página de login se carga correctamente
+   [ ] No hay errores en la consola del navegador
+
+5. VERIFICACIÓN DE FUNCIONALIDADES BÁSICAS:
+   [ ] Login funciona (si está implementado)
+   [ ] Dashboard se carga
+   [ ] Formularios responden
+   [ ] Navegación entre páginas funciona
+
+COMANDOS DE VERIFICACIÓN:
+
+1. Verificar estado de contenedores:
+   docker compose ps
+
+2. Ver logs del backend:
+   docker logs gestor-backend
+   docker logs gestor-backend --follow  # Para ver en tiempo real
+
+3. Ver logs de PostgreSQL:
+   docker logs gestor-postgres
+
+4. Probar endpoints de la API:
+   # Health check
+   curl http://localhost:8000/api/health
+   
+   # Listar usuarios
+   curl http://localhost:8000/api/usuarios
+   
+   # Listar tiendas
+   curl http://localhost:8000/api/stores
+
+5. Verificar conexión a base de datos:
+   # Conectar con psql (si está instalado)
+   psql -h localhost -U admin -d gestorcash
+   # Contraseña: admin
+   
+   # Listar tablas
+   \dt
+   
+   # Salir
+   \q
+
+6. Verificar que el frontend puede comunicarse con el backend:
+   - Abrir las herramientas de desarrollador del navegador (F12)
+   - Ir a la pestaña Network
+   - Cargar la aplicación
+   - Verificar que las peticiones a /api/* se realizan correctamente
+
+SOLUCIÓN DE PROBLEMAS COMUNES:
+
+Problema: "Database connection established" no aparece
+Solución:
+- Verificar que las credenciales en .env sean correctas
+- Verificar que PostgreSQL esté corriendo
+- Verificar que el puerto 5432 esté disponible
+- Revisar logs: docker logs gestor-backend
+
+Problema: "relation 'usuario' does not exist"
+Solución:
+- Habilitar sincronización temporalmente: SHOULD_SYNC_DB=true
+- Reiniciar backend: docker restart gestor-backend
+- Verificar que las tablas se crearon
+
+Problema: Puerto 8000 o 5432 ya en uso
+Solución:
+- Identificar el proceso: netstat -ano | findstr :8000 (Windows)
+- Detener el proceso o cambiar el puerto en docker-compose.yml
+
+Problema: Frontend no se conecta al backend
+Solución:
+- Verificar que VITE_API_URL esté configurado correctamente
+- Verificar CORS en el backend
+- Verificar que el backend esté corriendo
+
+
+5.1.9 MARCHA ATRÁS DE LA INSTALACIÓN Y CONFIGURACIÓN
+--------------------------------------------------------------------------------
+
+PROCEDIMIENTO DE DESINSTALACIÓN COMPLETA:
+
+Si es necesario revertir completamente la instalación, seguir estos pasos:
+
+PASO 1: DETENER SERVICIOS
+
+1. Detener todos los contenedores:
+   docker compose down
+
+2. Si se desea eliminar también los volúmenes (incluyendo la base de datos):
+   docker compose down -v
+
+   ADVERTENCIA: Esto eliminará todos los datos almacenados en la base de datos.
+
+PASO 2: ELIMINAR CONTENEDORES E IMÁGENES
+
+1. Eliminar contenedores específicos:
+   docker rm gestor-backend gestor-postgres
+
+2. Eliminar imágenes:
+   docker rmi gestor-backend
+   docker rmi postgres:16
+
+3. Limpiar recursos no utilizados:
+   docker system prune -a
+
+PASO 3: ELIMINAR ARCHIVOS DE CONFIGURACIÓN
+
+1. Eliminar archivos .env (opcional, mantener si se quiere reinstalar):
+   rm app/server/.env
+   rm app/web/.env.local
+
+2. Eliminar node_modules (opcional):
+   rm -rf app/server/node_modules
+   rm -rf app/web/node_modules
+   rm -rf node_modules
+
+PASO 4: ELIMINAR BASE DE DATOS (SI NO SE USÓ DOCKER)
+
+Si se instaló PostgreSQL manualmente:
+
+1. Conectar a PostgreSQL:
+   psql -U postgres
+
+2. Eliminar la base de datos:
+   DROP DATABASE gestorcash;
+
+3. Eliminar el usuario (si se creó uno específico):
+   DROP USER admin;
+
+PASO 5: REVERTIR CAMBIOS EN EL SISTEMA OPERATIVO
+
+1. Desinstalar Node.js (opcional):
+   Windows: Usar "Agregar o quitar programas"
+   Linux: sudo apt remove nodejs npm
+   macOS: brew uninstall node
+
+2. Desinstalar Docker (opcional):
+   Windows/macOS: Usar "Agregar o quitar programas" o desinstalador
+   Linux: sudo apt remove docker docker-compose
+
+PROCEDIMIENTO DE REINSTALACIÓN LIMPIA:
+
+Si se desea reinstalar desde cero:
+
+1. Seguir el procedimiento de desinstalación completa
+
+2. Eliminar el directorio del proyecto (opcional):
+   rm -rf prototipo-gestorCash
+
+3. Clonar nuevamente el repositorio
+
+4. Seguir los pasos de instalación desde el inicio (Sección 5.1.7)
+
+RESPALDO ANTES DE DESINSTALAR:
+
+Antes de realizar una desinstalación, es recomendable:
+
+1. Hacer backup de la base de datos:
+   # Con Docker
+   docker exec gestor-postgres pg_dump -U admin gestorcash > backup.sql
+   
+   # O usando script proporcionado
+   .\scripts\backup-supabase.ps1
+
+2. Exportar datos importantes:
+   - Usuarios
+   - Tiendas
+   - Gastos
+   - Reportes
+
+3. Guardar archivos de configuración:
+   - app/server/.env
+   - app/web/.env.local
+   - Cualquier personalización realizada
+
+
+5.1.10 ANEXOS
+--------------------------------------------------------------------------------
+
+ANEXO A: ESTRUCTURA DE DIRECTORIOS DEL PROYECTO
+
+prototipo-gestorCash/
+├── app/
+│   ├── server/                 # Backend Node.js/Express
+│   │   ├── src/
+│   │   │   ├── config/         # Configuración de base de datos
+│   │   │   ├── models/         # Modelos Sequelize
+│   │   │   ├── routes/         # Rutas de la API
+│   │   │   ├── schemas/        # Esquemas de validación Zod
+│   │   │   └── seeders/        # Datos iniciales
+│   │   ├── Dockerfile          # Imagen Docker del backend
+│   │   ├── package.json        # Dependencias del backend
+│   │   ├── tsconfig.json       # Configuración TypeScript
+│   │   └── .env                # Variables de entorno (crear)
+│   │
+│   └── web/                    # Frontend React/Vite
+│       ├── src/
+│       │   ├── components/     # Componentes React
+│       │   │   ├── auth/       # Componentes de autenticación
+│       │   │   ├── dashboard/  # Componentes del dashboard
+│       │   │   ├── layout/     # Componentes de layout
+│       │   │   └── ui/         # Componentes UI reutilizables
+│       │   ├── pages/          # Páginas de la aplicación
+│       │   ├── lib/            # Utilidades y helpers
+│       │   │   ├── api/        # Clientes API
+│       │   │   └── hooks/      # React hooks personalizados
+│       │   └── main.tsx        # Punto de entrada
+│       ├── package.json        # Dependencias del frontend
+│       ├── vite.config.ts      # Configuración Vite
+│       ├── tailwind.config.ts  # Configuración Tailwind
+│       └── tsconfig.json       # Configuración TypeScript
+│
+├── db/
+│   └── migrations/             # Migraciones de base de datos
+│
+├── docs/                       # Documentación adicional
+│   └── blueprint.md            # Especificaciones del sistema
+│
+├── scripts/                    # Scripts de utilidad
+│   ├── backup-supabase.ps1     # Backup de Supabase
+│   ├── restore-to-local.ps1    # Restaurar a local
+│   └── configure-local.ps1     # Configurar entorno local
+│
+├── docker-compose.yml          # Configuración Docker Compose
+├── package.json                # Dependencias del proyecto raíz
+└── README.md                   # Documentación principal
+
+ANEXO B: VARIABLES DE ENTORNO
+
+Variables del Backend (app/server/.env):
+
+PORT                    Puerto en el que corre el servidor (default: 8000)
+NODE_ENV                Entorno de ejecución (development/production)
+ACTIVE_DB              Perfil de base de datos (local/supabase)
+LOCAL_DATABASE_URL      URL de conexión a PostgreSQL local
+SUPABASE_DATABASE_URL   URL de conexión a Supabase
+USE_SSL                 Habilitar SSL para conexiones (true/false)
+DB_SSL                  SSL para base de datos (true/false)
+SHOULD_SYNC_DB          Sincronizar modelos con BD (true/false)
+SHOULD_SYNC_DB_ALTER    Permitir alteraciones (true/false)
+SHOULD_SYNC_DB_FORCE    Forzar recreación (true/false)
+SEED_DEFAULT_DATA       Sembrar datos iniciales (true/false)
+DEFAULT_STORE_ID        ID de tienda por defecto
+DEFAULT_STORE_NAME      Nombre de tienda por defecto
+DEFAULT_STORE_CODE      Código de tienda por defecto
+
+Variables del Frontend (app/web/.env.local):
+
+VITE_API_URL           URL base de la API del backend
+
+ANEXO C: COMANDOS ÚTILES
+
+Comandos de Docker:
+  docker compose ps              # Ver estado de contenedores
+  docker compose up -d           # Levantar servicios en background
+  docker compose down            # Detener servicios
+  docker compose down -v         # Detener y eliminar volúmenes
+  docker compose logs -f backend # Ver logs del backend
+  docker compose restart backend # Reiniciar backend
+
+Comandos de Desarrollo:
+  npm run dev:server              # Ejecutar backend en desarrollo
+  npm run dev:web                 # Ejecutar frontend en desarrollo
+  npm run dev:all                 # Ejecutar ambos simultáneamente
+  npm run build:server            # Compilar backend
+  npm run build                   # Compilar frontend
+  npm run install:all             # Instalar todas las dependencias
+
+Comandos de Base de Datos:
+  docker exec -it gestor-postgres psql -U admin -d gestorcash
+  # Conectar a PostgreSQL dentro del contenedor
+
+ANEXO D: ENDPOINTS PRINCIPALES DE LA API
+
+Base URL: http://localhost:8000/api
+
+Usuarios:
+  GET    /usuarios                # Listar usuarios
+  GET    /usuarios/:id            # Obtener usuario
+  POST   /usuarios                # Crear usuario
+  PUT    /usuarios/:id            # Actualizar usuario
+  DELETE /usuarios/:id            # Eliminar usuario
+
+Tiendas:
+  GET    /stores                  # Listar tiendas
+  GET    /stores/:id              # Obtener tienda
+  POST   /stores                  # Crear tienda
+  PUT    /stores/:id              # Actualizar tienda
+  DELETE /stores/:id              # Eliminar tienda
+
+Gastos:
+  GET    /gastos                  # Listar gastos
+  GET    /gastos/:id              # Obtener gasto
+  POST   /gastos                  # Crear gasto
+  PUT    /gastos/:id              # Actualizar gasto
+  DELETE /gastos/:id              # Eliminar gasto
+
+Conteos:
+  GET    /conteos                 # Listar conteos
+  POST   /conteos                 # Crear conteo
+
+Reportes:
+  GET    /reportes-diarios        # Listar reportes diarios
+  GET    /reportes-diarios/:id    # Obtener reporte
+  POST   /reportes-diarios        # Generar reporte
+
+Health Check:
+  GET    /health                  # Verificar estado del sistema
+
+ANEXO E: ROLES Y PERMISOS
+
+District Manager (DM):
+  - Acceso completo al sistema
+  - Gestión de usuarios y tiendas
+  - Visualización de reportes de todas las tiendas
+  - Aprobación de gastos
+
+Store Manager (SM):
+  - Gestión de su tienda asignada
+  - Registro de conteos de apertura y cierre
+  - Registro y aprobación de gastos
+  - Generación de reportes de su tienda
+  - Gestión de usuarios de su tienda
+
+Assistant Store Manager (ASM):
+  - Registro de conteos de apertura y cierre
+  - Registro de gastos (requiere aprobación)
+  - Visualización de reportes de su tienda
+  - Acceso limitado a funciones administrativas
+
+
+5.1.11 GLOSARIO
+--------------------------------------------------------------------------------
+
+API (Application Programming Interface)
+  Conjunto de definiciones y protocolos que permite la comunicación entre
+  aplicaciones de software.
+
+Backend
+  Parte del sistema que se ejecuta en el servidor, maneja la lógica de
+  negocio y la comunicación con la base de datos.
+
+Base de Datos
+  Conjunto organizado de datos almacenados electrónicamente que puede ser
+  accedido y gestionado por un sistema informático.
+
+Contenedor Docker
+  Instancia ejecutable de una imagen Docker que contiene una aplicación y
+  todas sus dependencias.
+
+CORS (Cross-Origin Resource Sharing)
+  Mecanismo que permite que recursos web sean solicitados desde otro dominio
+  diferente al que sirvió el recurso.
+
+Dashboard
+  Panel de control que muestra información resumida y métricas clave del
+  sistema.
+
+Docker Compose
+  Herramienta para definir y ejecutar aplicaciones Docker multi-contenedor.
+
+Frontend
+  Parte del sistema que interactúa directamente con el usuario, generalmente
+  una interfaz web.
+
+ORM (Object-Relational Mapping)
+  Técnica de programación que convierte datos entre sistemas incompatibles
+  usando lenguajes orientados a objetos.
+
+PostgreSQL
+  Sistema de gestión de bases de datos relacional de código abierto.
+
+React
+  Biblioteca de JavaScript para construir interfaces de usuario.
+
+REST (Representational State Transfer)
+  Estilo arquitectónico para diseñar servicios web que utiliza métodos HTTP
+  estándar.
+
+Sequelize
+  ORM para Node.js que soporta múltiples bases de datos relacionales.
+
+Supabase
+  Plataforma de código abierto que proporciona servicios de backend como base
+  de datos PostgreSQL, autenticación y almacenamiento.
+
+TypeScript
+  Lenguaje de programación que extiende JavaScript añadiendo tipos estáticos.
+
+Vite
+  Herramienta de construcción para desarrollo frontend que proporciona un
+  servidor de desarrollo rápido.
+
+Volumen Docker
+  Mecanismo para persistir datos generados y utilizados por contenedores
+  Docker.
+
+================================================================================
+FIN DEL DOCUMENTO
+================================================================================
