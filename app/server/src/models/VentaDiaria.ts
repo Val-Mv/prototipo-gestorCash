@@ -63,9 +63,9 @@ VentaDiaria.init(
     },
     ventaTotal: {
       type: DataTypes.VIRTUAL,
-      get() {
-        const efectivo = parseFloat(this.getDataValue('totalEfectivo') || '0');
-        const tarjeta = parseFloat(this.getDataValue('totalTarjeta') || '0');
+      get(): number {
+        const efectivo = Number(this.getDataValue('totalEfectivo') || '0');
+        const tarjeta = Number(this.getDataValue('totalTarjeta') || '0');
         return efectivo + tarjeta;
       },
     },

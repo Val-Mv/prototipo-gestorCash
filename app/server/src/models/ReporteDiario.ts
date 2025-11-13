@@ -12,6 +12,8 @@ export interface ReporteDiarioAttributes {
   totalGastosDia: number;
   totalDiferencias: number;
   idUsuarioGenerador: number;
+  resumenDiferencias?: string | null;
+  cantidadDiferencias?: number | null;
 }
 
 export interface ReporteDiarioCreationAttributes
@@ -26,6 +28,8 @@ export interface ReporteDiarioCreationAttributes
     | 'totalTarjeta'
     | 'totalGastosDia'
     | 'totalDiferencias'
+    | 'resumenDiferencias'
+    | 'cantidadDiferencias'
   > {}
 
 export class ReporteDiario
@@ -42,6 +46,8 @@ export class ReporteDiario
   public totalGastosDia!: number;
   public totalDiferencias!: number;
   public idUsuarioGenerador!: number;
+  public resumenDiferencias?: string | null;
+  public cantidadDiferencias?: number | null;
 }
 
 ReporteDiario.init(
@@ -104,6 +110,16 @@ ReporteDiario.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'idusuariogenerador',
+    },
+    resumenDiferencias: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'resumendiferencias',
+    },
+    cantidadDiferencias: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'cantidaddiferencias',
     },
   },
   {

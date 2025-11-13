@@ -31,6 +31,7 @@ CategoriaGasto.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idcategoria',
     },
     nombre: {
       type: DataTypes.STRING(150),
@@ -44,6 +45,7 @@ CategoriaGasto.init(
     presupuestoMensual: {
       type: DataTypes.DECIMAL(14, 2),
       allowNull: true,
+      field: 'presupuestomensual',
     },
     activa: {
       type: DataTypes.BOOLEAN,
@@ -53,6 +55,7 @@ CategoriaGasto.init(
     idUsuarioCreacion: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idusuariocreacion',
     },
   },
   {

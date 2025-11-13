@@ -42,10 +42,13 @@ export interface UsuarioFilters {
  * Crear un nuevo usuario
  */
 export async function createUsuario(payload: CreateUsuarioPayload): Promise<Usuario> {
-  // Convertir estadoActivo de booleano a número (0 o 1) para el backend
   const backendPayload = {
-    ...payload,
-    estadoActivo: payload.estadoActivo ? 1 : 0,
+    nombreCompleto: payload.nombreCompleto,
+    email: payload.email,
+    contrasenaHash: payload.contrasenaHash,
+    idRol: payload.idRol,
+    estadoActivo: payload.estadoActivo ?? true,
+    ...(payload.telefono ? { telefono: payload.telefono } : {}),
   };
   
   return apiRequest<Usuario>('/api/usuarios', {
@@ -96,13 +99,26 @@ export async function updateUsuario(
   id: number,
   payload: UpdateUsuarioPayload
 ): Promise<Usuario> {
-  // Convertir estadoActivo de booleano a número (0 o 1) para el backend si está presente
-  const backendPayload = {
-    ...payload,
-    ...(payload.estadoActivo !== undefined && {
-      estadoActivo: payload.estadoActivo ? 1 : 0,
-    }),
-  };
+  const backendPayload: any = {};
+  
+  if (payload.nombreCompleto !== undefined) {
+    backendPayload.nombreCompleto = payload.nombreCompleto;
+  }
+  if (payload.email !== undefined) {
+    backendPayload.email = payload.email;
+  }
+  if (payload.contrasenaHash !== undefined) {
+    backendPayload.contrasenaHash = payload.contrasenaHash;
+  }
+  if (payload.idRol !== undefined) {
+    backendPayload.idRol = payload.idRol;
+  }
+  if (payload.estadoActivo !== undefined) {
+    backendPayload.estadoActivo = payload.estadoActivo;
+  }
+  if (payload.telefono !== undefined && payload.telefono !== null && payload.telefono !== '') {
+    backendPayload.telefono = payload.telefono;
+  }
   
   return apiRequest<Usuario>(`/api/usuarios/${id}`, {
     method: 'PUT',

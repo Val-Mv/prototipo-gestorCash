@@ -54,9 +54,9 @@ Conteo.init(
     },
     diferencia: {
       type: DataTypes.VIRTUAL,
-      get() {
-        const contado = parseFloat(this.getDataValue('montoContado') || '0');
-        const esperado = parseFloat(this.getDataValue('montoEsperado') || '0');
+      get(): number {
+        const contado = Number(this.getDataValue('montoContado') || '0');
+        const esperado = Number(this.getDataValue('montoEsperado') || '0');
         return contado - esperado;
       },
     },

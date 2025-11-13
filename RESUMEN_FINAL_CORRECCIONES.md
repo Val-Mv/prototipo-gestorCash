@@ -210,3 +210,4 @@ Si necesitas estas columnas, crea migraciones SQL:
 **Estado:** ✅ COMPLETADO - Todos los modelos corregidos y funcionando
 
 
+

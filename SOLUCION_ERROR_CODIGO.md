@@ -199,3 +199,4 @@ Para evitar este problema en el futuro:
 **Estado:** ✅ Solución implementada - La migración está lista para aplicar
 
 
+

@@ -61,8 +61,9 @@ Conteo.belongsTo(Usuario, { foreignKey: 'idUsuario', as: 'usuario' });
 TipoConteo.hasMany(Conteo, { foreignKey: 'idTipoConteo', as: 'conteos' });
 Conteo.belongsTo(TipoConteo, { foreignKey: 'idTipoConteo', as: 'tipoConteo' });
 
-ReporteDiario.hasMany(Conteo, { foreignKey: 'idReporte', as: 'conteos' });
-Conteo.belongsTo(ReporteDiario, { foreignKey: 'idReporte', as: 'reporte' });
+// NOTA: Comentado porque la columna idReporte no existe en conteo según el DDL real
+// ReporteDiario.hasMany(Conteo, { foreignKey: 'idReporte', as: 'conteos' });
+// Conteo.belongsTo(ReporteDiario, { foreignKey: 'idReporte', as: 'reporte' });
 
 // NOTA: Comentado temporalmente porque la columna idReporte no existe en venta_diaria
 // TODO: Agregar columna idreporte a venta_diaria si esta relación es necesaria
@@ -190,8 +191,7 @@ export const syncDatabase = async () => {
         force: forceSync && !alterSync,
       });
       console.log(
-        `✅ Modelos sincronizados con la base de datos (alter=${alterSync ? 'sí' : 'no'}, force=${
-          forceSync && !alterSync ? 'sí' : 'no'
+        `✅ Modelos sincronizados con la base de datos (alter=${alterSync ? 'sí' : 'no'}, force=${forceSync && !alterSync ? 'sí' : 'no'
         }).`
       );
     } else {

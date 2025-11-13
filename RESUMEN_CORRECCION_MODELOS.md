@@ -209,3 +209,4 @@ Database connection established
 **Estado:** ✅ Todos los modelos corregidos y funcionando correctamente
 
 
+

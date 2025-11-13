@@ -8,10 +8,9 @@ export interface DiferenciaCajaAttributes {
   montoReal: number;
   diferencia: number;
   justificacion?: string | null;
-  resuelta: number;  // La BD usa numeric(1,0): 0 = false, 1 = true
+  resuelta: boolean;
   idConteo: number;
   idTipoDiferencia: number;
-  // idUsuario: number; // Nota: Esta columna no existe en la tabla
 }
 
 export interface DiferenciaCajaCreationAttributes
@@ -27,10 +26,9 @@ export class DiferenciaCaja
   public montoReal!: number;
   public diferencia!: number;
   public justificacion?: string | null;
-  public resuelta!: number;  // 0 = false, 1 = true
+  public resuelta!: boolean;
   public idConteo!: number;
   public idTipoDiferencia!: number;
-  // public idUsuario!: number; // Nota: Esta columna no existe en la tabla
 }
 
 DiferenciaCaja.init(
@@ -59,9 +57,9 @@ DiferenciaCaja.init(
     },
     diferencia: {
       type: DataTypes.VIRTUAL,
-      get() {
-        const esperado = parseFloat(this.getDataValue('montoEsperado') || '0');
-        const real = parseFloat(this.getDataValue('montoReal') || '0');
+      get(): number {
+        const esperado = Number(this.getDataValue('montoEsperado') || '0');
+        const real = Number(this.getDataValue('montoReal') || '0');
         return real - esperado;
       },
     },
@@ -70,9 +68,9 @@ DiferenciaCaja.init(
       // Nota: Esta columna no existe en la tabla, se marca como virtual
     },
     resuelta: {
-      type: DataTypes.INTEGER,  // La BD usa numeric(1,0), no boolean
+      type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: 0,
+      defaultValue: false,
       field: 'resuelta',
     },
     idConteo: {
@@ -103,11 +101,6 @@ DiferenciaCaja.init(
         name: 'idx_diferencias_tipo',
         fields: ['idtipodiferencia'],
       },
-      // Nota: El índice de usuario está comentado porque la columna no existe
-      // {
-      //   name: 'idx_diferencias_usuario',
-      //   fields: ['idusuario'],
-      // },
     ],
   }
 );

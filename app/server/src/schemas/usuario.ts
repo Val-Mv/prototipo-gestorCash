@@ -6,7 +6,7 @@ export const usuarioCreateSchema = z.object({
   contrasenaHash: z.string().min(6).max(255),
   telefono: z.string().min(6).max(30).optional().nullable(),
   idRol: z.number().int().positive(),
-  estadoActivo: z.number().int().min(0).max(1).optional().default(1),  // 0 = false, 1 = true
+  estadoActivo: z.boolean().optional().default(true),
 });
 
 export const usuarioUpdateSchema = usuarioCreateSchema.partial();

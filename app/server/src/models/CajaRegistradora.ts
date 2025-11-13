@@ -6,7 +6,7 @@ export interface CajaRegistradoraAttributes {
   numeroCaja: string;
   montoInicialRequerido: number;
   ubicacion?: string | null;
-  estadoActiva: number;  // La BD usa numeric(1,0): 0 = false, 1 = true
+  estadoActiva: boolean;
   fechaRegistro?: Date;
 }
 
@@ -21,7 +21,7 @@ export class CajaRegistradora
   public numeroCaja!: string;
   public montoInicialRequerido!: number;
   public ubicacion?: string | null;
-  public estadoActiva!: number;  // 0 = false, 1 = true
+  public estadoActiva!: boolean;
   public fechaRegistro?: Date;
 }
 
@@ -50,9 +50,9 @@ CajaRegistradora.init(
       field: 'ubicacion',
     },
     estadoActiva: {
-      type: DataTypes.INTEGER,  // La BD usa numeric(1,0), no boolean
+      type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: 1,
+      defaultValue: true,
       field: 'estadoactiva',
     },
     fechaRegistro: {

@@ -8,7 +8,7 @@ export interface UsuarioAttributes {
   contrasenaHash: string;
   telefono?: string | null;
   fechaCreacion?: Date;
-  estadoActivo: number;  // La BD usa numeric(1,0): 0 = false, 1 = true
+  estadoActivo: boolean;
   idRol: number;
 }
 
@@ -22,7 +22,7 @@ export class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes>
   public contrasenaHash!: string;
   public telefono?: string | null;
   public fechaCreacion?: Date;
-  public estadoActivo!: number;  // 0 = false, 1 = true
+  public estadoActivo!: boolean;
   public idRol!: number;
 }
 
@@ -62,10 +62,17 @@ Usuario.init(
       field: 'fechacreacion',
     },
     estadoActivo: {
-      type: DataTypes.INTEGER,  // La BD usa numeric(1,0), no boolean
-      allowNull: false,
-      defaultValue: 1,
+      type: DataTypes.INTEGER,
       field: 'estadoactivo',
+      allowNull: true,
+      defaultValue: 1,
+      get() {
+        const raw = this.getDataValue('estadoActivo') as unknown as number | null;
+        return raw === 1;
+      },
+      set(value: boolean) {
+        this.setDataValue('estadoActivo', (value ? 1 : 0) as unknown as boolean);
+      },
     },
     idRol: {
       type: DataTypes.INTEGER,

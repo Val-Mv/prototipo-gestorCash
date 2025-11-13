@@ -56,9 +56,10 @@ export async function fixSequences() {
             -- Si la secuencia ya existe, solo asegurar que esté asignada a la columna
             ALTER TABLE ${config.tableName} ALTER COLUMN ${config.columnName} SET DEFAULT nextval('${config.sequenceName}');
             -- Ajustar el valor de la secuencia si es necesario
+            -- Usar el máximo entre el valor actual de la secuencia (obtenido directamente) y el máximo de la tabla
             PERFORM setval('${config.sequenceName}', GREATEST(
               (SELECT COALESCE(MAX(${config.columnName})::bigint, 0) FROM ${config.tableName}) + 1,
-              currval('${config.sequenceName}')
+              (SELECT last_value FROM ${config.sequenceName})
             ), false);
           END IF;
         END $$;

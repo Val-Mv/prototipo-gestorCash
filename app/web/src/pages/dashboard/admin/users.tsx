@@ -48,18 +48,28 @@ const createUsuarioSchema = z.object({
   nombreCompleto: z.string().min(1, 'El nombre es requerido').max(150),
   email: z.string().email('Email inválido').max(150),
   contrasenaHash: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(255),
-  telefono: z.string().max(30).optional().nullable(),
+  telefono: z
+    .string()
+    .max(20, 'El teléfono es demasiado largo')
+    .optional()
+    .or(z.literal(''))
+    .transform((value) => (value === '' || !value ? undefined : value)),
   idRol: z.number().int().positive('Debe seleccionar un rol'),
-  estadoActivo: z.boolean().default(true),
+  estadoActivo: z.boolean().optional().default(true),
 });
 
 const updateUsuarioSchema = z.object({
   nombreCompleto: z.string().min(1, 'El nombre es requerido').max(150),
   email: z.string().email('Email inválido').max(150),
   contrasenaHash: z.string().max(255).optional(),
-  telefono: z.string().max(30).optional().nullable(),
+  telefono: z
+    .string()
+    .max(20, 'El teléfono es demasiado largo')
+    .optional()
+    .or(z.literal(''))
+    .transform((value) => (value === '' || !value ? undefined : value)),
   idRol: z.number().int().positive('Debe seleccionar un rol'),
-  estadoActivo: z.boolean().default(true),
+  estadoActivo: z.boolean().optional().default(true),
 }).refine((data) => {
   // Si se proporciona contraseña, debe tener al menos 6 caracteres
   if (data.contrasenaHash && data.contrasenaHash.length > 0) {
@@ -87,14 +97,7 @@ export default function UsersPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // Crear un tipo unión para el formulario
-  type UsuarioFormInput = {
-    nombreCompleto: string;
-    email: string;
-    contrasenaHash: string;
-    telefono?: string | null;
-    idRol: number;
-    estadoActivo: boolean;
-  };
+  type UsuarioFormInput = z.infer<typeof createUsuarioSchema>;
 
   const form = useForm<UsuarioFormInput>({
     resolver: zodResolver(createUsuarioSchema), // Por defecto usar el schema de creación
@@ -185,14 +188,19 @@ export default function UsersPage() {
           return;
         }
         
-        // Actualizar usuario
+        // Usar los datos transformados por Zod
+        const validatedData = updateValidation.data;
         const updateData: any = {
-          nombreCompleto: data.nombreCompleto,
-          email: data.email,
-          telefono: data.telefono || null,
-          idRol: data.idRol,
-          estadoActivo: data.estadoActivo,
+          nombreCompleto: validatedData.nombreCompleto,
+          email: validatedData.email,
+          idRol: validatedData.idRol,
+          estadoActivo: validatedData.estadoActivo,
         };
+        
+        // Solo incluir teléfono si tiene valor
+        if (validatedData.telefono !== undefined && validatedData.telefono !== null && validatedData.telefono !== '') {
+          updateData.telefono = validatedData.telefono;
+        }
         
         // Solo actualizar contraseña si se proporcionó una nueva (no vacía)
         if (data.contrasenaHash && data.contrasenaHash.trim().length > 0) {
@@ -222,7 +230,16 @@ export default function UsersPage() {
           return;
         }
         
-        await createUsuario(data);
+        // Usar los datos transformados por Zod
+        const validatedData = createValidation.data;
+        await createUsuario({
+          nombreCompleto: validatedData.nombreCompleto,
+          email: validatedData.email,
+          contrasenaHash: validatedData.contrasenaHash,
+          idRol: validatedData.idRol,
+          estadoActivo: validatedData.estadoActivo,
+          telefono: validatedData.telefono,
+        });
         toast({
           title: 'Usuario creado',
           description: 'El usuario ha sido creado correctamente.',

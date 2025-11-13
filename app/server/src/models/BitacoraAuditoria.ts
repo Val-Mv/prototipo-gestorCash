@@ -18,12 +18,11 @@ export interface BitacoraAuditoriaCreationAttributes
   extends Optional<
     BitacoraAuditoriaAttributes,
     'idBitacora' | 'fechaHora' | 'descripcion' | 'valoresAnteriores' | 'valoresNuevos' | 'direccionIP'
-  > {}
+  > { }
 
 export class BitacoraAuditoria
   extends Model<BitacoraAuditoriaAttributes, BitacoraAuditoriaCreationAttributes>
-  implements BitacoraAuditoriaAttributes
-{
+  implements BitacoraAuditoriaAttributes {
   public idBitacora!: number;
   public fechaHora!: Date;
   public accion!: string;
@@ -58,12 +57,12 @@ BitacoraAuditoria.init(
     tablaModificada: {
       type: DataTypes.STRING(200),
       allowNull: false,
-      field: 'moduloAfectado',  // La BD usa moduloAfectado, no tablaModificada
+      field: 'moduloAfectado',
     },
     registroAfectado: {
       type: DataTypes.STRING(200),
       allowNull: false,
-      field: 'registroId',  // La BD usa registroId, no registroAfectado
+      field: 'registroId',
     },
     descripcion: {
       type: DataTypes.STRING(1000),
