@@ -2,7 +2,7 @@
  * Configuración de la API Backend
  */
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
+console.log('API_BASE_URL set to:', API_BASE_URL);
 /**
  * Función helper para hacer requests al backend
  */
