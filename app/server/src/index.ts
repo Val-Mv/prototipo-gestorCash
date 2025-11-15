@@ -80,14 +80,14 @@ async function startServer() {
   try {
     // Sincronizar base de datos
     await syncDatabase();
-    
+
     // Verificar y corregir secuencias de auto-increment
     await fixSequences();
-    
+
     // Poblar datos iniciales (roles)
     console.log('🌱 Verificando datos iniciales...');
     await seedRoles();
-    
+
     // Iniciar servidor
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
