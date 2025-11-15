@@ -131,11 +131,6 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   });
 });
 
-// Inicializar servidor
-async function startServer() {
-  try {
-    // Sincronizar base de datos
-    await syncDatabase();
 // Solo iniciar el servidor con app.listen en un entorno de desarrollo.
 // En Vercel, el archivo se importa como un módulo y no debe escuchar en un puerto.
 if (process.env.NODE_ENV !== 'production') {
@@ -145,27 +140,13 @@ if (process.env.NODE_ENV !== 'production') {
       // Sincronizar base de datos
       await syncDatabase();
 
-    // Verificar y corregir secuencias de auto-increment
-    await fixSequences();
       // Verificar y corregir secuencias de auto-increment
       await fixSequences();
 
-    // Poblar datos iniciales (roles)
-    console.log('🌱 Verificando datos iniciales...');
-    await seedRoles();
       // Poblar datos iniciales (roles)
       console.log('🌱 Verificando datos iniciales...');
       await seedRoles();
 
-    // Iniciar servidor
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-      console.log(`📚 Health check: http://localhost:${PORT}/api/health`);
-    });
-  } catch (error) {
-    console.error('❌ Error al iniciar el servidor:', error);
-    process.exit(1);
-  }
       // Iniciar servidor
       app.listen(PORT, () => {
         console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
@@ -179,7 +160,5 @@ if (process.env.NODE_ENV !== 'production') {
 
   startServer();
 }
-
-startServer();
 
 export default app;
