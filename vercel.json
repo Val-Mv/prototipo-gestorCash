@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "engines": {
+    "node": "20.x"
+  },
+  "name": "prototipo-gestor-cash",
+  "builds": [
+    {
+      "src": "app/web/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist",
+        "workPath": "app/web" 
+      },
+      "name": "frontend"
+    },
+    {
+      "src": "app/server/package.json",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["dist/**"]
+      }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/app/server/src/index.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend"
+    }
+  ]
+}
