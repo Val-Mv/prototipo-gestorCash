@@ -26,7 +26,7 @@ router.post('/', async (req: Request, res: Response) => {
       contrasenahash,
       telefono: validatedData.telefono || null,
       idRol: validatedData.idRol,
-      estadoActivo: validatedData.estadoActivo, // El setter del modelo se encarga de la conversión
+      estadoActivo: validatedData.estadoActivo ? 1 : 0,
     });
 
     // Retornar usuario sin la contraseña hash
@@ -124,7 +124,7 @@ router.patch('/:id/estado', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    await usuario.update({ estadoActivo: estadoActivo });
+    await usuario.update({ estadoActivo: estadoActivo ? 1 : 0 });
 
     // Leer estado real de BD desde dataValues (nombre propiedad TypeScript: estadoActivo)
     // Recargar el usuario para obtener el valor actualizado desde la BD
@@ -134,7 +134,7 @@ router.patch('/:id/estado', async (req: Request, res: Response) => {
     return res.json({
       idUsuario: usuario.idUsuario,
       estadoActivo: estadoRealBD,
-      mensaje: `Usuario ${estadoNumeric === 1 ? 'activado' : 'desactivado'} correctamente`,
+      mensaje: `Usuario ${estadoRealBD === 1 ? 'activado' : 'desactivado'} correctamente`,
     });
   } catch (error: any) {
     if (error.name === 'ZodError') {
@@ -170,7 +170,7 @@ router.put('/:idUsuario', async (req: Request, res: Response) => {
 
     // El setter del modelo se encargará de la conversión de estadoActivo si viene en el body
     if (datosActualizados.estadoActivo !== undefined) {
-      (datosActualizados as any).estadoActivo = datosActualizados.estadoActivo;
+      (datosActualizados as any).estadoActivo = datosActualizados.estadoActivo ? 1 : 0;
     }
 
     await usuario.update(datosActualizados as any);
@@ -200,7 +200,7 @@ router.delete('/:idUsuario', async (req: Request, res: Response) => {
     }
 
     // Desactivar usuario: el setter del modelo convertirá false a 0
-    await usuario.update({ estadoActivo: false });
+    await usuario.update({ estadoActivo: 0 });
     return res.json({ mensaje: 'Usuario desactivado correctamente' });
   } catch (error: any) {
     console.error('Error al desactivar usuario:', error);
