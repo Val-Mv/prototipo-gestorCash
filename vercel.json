@@ -1,12 +1,15 @@
 {
   "version": 2,
+  "name": "prototipo-gestor-cash",
   "builds": [
     {
       "src": "app/web/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
-      }
+        "distDir": "dist",
+        "workPath": "app/web" 
+      },
+      "name": "frontend"
     },
     {
       "src": "app/server/src/index.ts",
@@ -20,7 +23,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/app/web/dist/index.html"
+      "destination": "/frontend"
     }
   ]
 }
