@@ -35,7 +35,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getUsuarios, createUsuario, updateUsuario, cambiarEstadoUsuario, type Usuario } from '@/lib/api/usuarios';
 import { getRoles, type Rol } from '@/lib/api/roles';
 import { getStores, type Store } from '@/lib/api/stores';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -74,7 +74,7 @@ const updateUsuarioSchema = usuarioBaseSchema.extend({
     return true;
   }, { message: 'La contraseña debe tener al menos 6 caracteres si se modifica', path: ['contrasena'] });
 
-type UsuarioFormData = z.infer<typeof createUsuarioSchema>;
+type UsuarioFormData = z.infer<typeof createUsuarioSchema> | z.infer<typeof updateUsuarioSchema>;
 
 export default function UsersPage() {
   const { user } = useAuth();
@@ -89,8 +89,11 @@ export default function UsersPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Determina el esquema de validación basado en si estamos editando o no.
+  const currentSchema = editingUsuario ? updateUsuarioSchema : createUsuarioSchema;
+
   const form = useForm<UsuarioFormData>({
-    resolver: zodResolver(createUsuarioSchema), // Se actualizará dinámicamente
+    resolver: zodResolver(currentSchema),
     defaultValues: {
       nombreCompleto: '',
       email: '',
@@ -104,6 +107,10 @@ export default function UsersPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    form.reset(undefined, { keepValues: true }); // Resetea el resolver sin borrar los valores
+  }, [currentSchema, form]);
 
   const loadData = async () => {
     try {
@@ -130,8 +137,6 @@ export default function UsersPage() {
   const handleOpenDialog = (usuario?: Usuario) => {
     if (usuario) {
       setEditingUsuario(usuario);
-      // Cambiar el resolver al de actualización
-      form.resolver(zodResolver(updateUsuarioSchema));
       form.reset({
         nombreCompleto: usuario.nombreCompleto,
         email: usuario.email,
@@ -142,8 +147,6 @@ export default function UsersPage() {
       });
     } else {
       setEditingUsuario(null);
-      // Cambiar el resolver al de creación
-      form.resolver(zodResolver(createUsuarioSchema));
       form.reset({
         nombreCompleto: '',
         email: '',
@@ -471,8 +474,11 @@ export default function UsersPage() {
                 name="estadoActivo"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       <FormLabel>Usuario Activo</FormLabel>
+                      <FormDescription>
+                        Si está inactivo, el usuario no podrá iniciar sesión.
+                      </FormDescription>
                     </div>
                     <FormControl>
                       <Switch
