@@ -52,7 +52,10 @@ apiRouter.use('/tipos-conteo', tiposConteoRoutes);
 apiRouter.use('/tipos-diferencia', tiposDiferenciaRoutes);
 apiRouter.use('/reportes-diarios', reportesDiariosRoutes);
 
-app.use('/api', apiRouter);
+// Ya no usamos el prefijo '/api' aquí, porque vercel.json se encarga de eso.
+// Cualquier petición que llegue a esta función ya fue reescrita desde /api/...
+// Por ejemplo, una petición a /api/gastos llegará aquí como /gastos.
+app.use(apiRouter);
 
 app.get('/', (_req, res) => {
   res.json({
