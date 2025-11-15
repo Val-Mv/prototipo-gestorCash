@@ -44,48 +44,35 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format } from 'date-fns';
 
-const createUsuarioSchema = z.object({
+// Esquema base con campos comunes
+const usuarioBaseSchema = z.object({
   nombreCompleto: z.string().min(1, 'El nombre es requerido').max(150),
   email: z.string().email('Email inválido').max(100),
-  contrasena: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(255),
   telefono: z
     .string()
     .max(20, 'El teléfono es demasiado largo')
     .optional()
     .or(z.literal(''))
     .transform((value) => (value === '' || !value ? undefined : value)),
-  idRol: z.number().int().positive('Debe seleccionar un rol'),
-  estadoActivo: z.union([z.boolean(), z.number()]).optional().default(true).transform((val) => {
-    if (typeof val === 'boolean') return val ? 1 : 0;
-    return val === 1 ? 1 : 0;
-  }),
+  idRol: z.coerce.number().int().positive('Debe seleccionar un rol'),
+  estadoActivo: z.boolean().default(true),
 });
 
-const updateUsuarioSchema = z.object({
-  nombreCompleto: z.string().min(1, 'El nombre es requerido').max(150),
-  email: z.string().email('Email inválido').max(100),
-  contrasena: z.string().max(255).optional(),
-  telefono: z
-    .string()
-    .max(20, 'El teléfono es demasiado largo')
-    .optional()
-    .or(z.literal(''))
-    .transform((value) => (value === '' || !value ? undefined : value)),
-  idRol: z.number().int().positive('Debe seleccionar un rol'),
-  estadoActivo: z.union([z.boolean(), z.number()]).optional().default(true).transform((val) => {
-    if (typeof val === 'boolean') return val ? 1 : 0;
-    return val === 1 ? 1 : 0;
-  }),
-}).refine((data) => {
-  // Si se proporciona contraseña, debe tener al menos 6 caracteres
-  if (data.contrasena && data.contrasena.length > 0) {
-    return data.contrasena.length >= 6;
-  }
-  return true;
-}, {
-  message: 'La contraseña debe tener al menos 6 caracteres',
-  path: ['contrasena'],
+// Esquema para crear, extiende el base y hace la contraseña requerida
+const createUsuarioSchema = usuarioBaseSchema.extend({
+  contrasena: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(255),
 });
+
+// Esquema para actualizar, extiende el base y hace la contraseña opcional
+const updateUsuarioSchema = usuarioBaseSchema.extend({
+  contrasena: z.string().max(255).optional().or(z.literal('')).transform(val => val === '' ? undefined : val),
+}).refine(data => {
+    // Si se proporciona contraseña, debe tener al menos 6 caracteres
+    if (data.contrasena && data.contrasena.length > 0) {
+      return data.contrasena.length >= 6;
+    }
+    return true;
+  }, { message: 'La contraseña debe tener al menos 6 caracteres si se modifica', path: ['contrasena'] });
 
 type UsuarioFormData = z.infer<typeof createUsuarioSchema>;
 
@@ -102,18 +89,15 @@ export default function UsersPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Crear un tipo unión para el formulario
-  type UsuarioFormInput = z.infer<typeof createUsuarioSchema>;
-
-  const form = useForm<UsuarioFormInput>({
-    resolver: zodResolver(createUsuarioSchema), // Por defecto usar el schema de creación
+  const form = useForm<UsuarioFormData>({
+    resolver: zodResolver(createUsuarioSchema), // Se actualizará dinámicamente
     defaultValues: {
       nombreCompleto: '',
       email: '',
       contrasena: '',
       telefono: '',
-      idRol: 0,
-      estadoActivo: 1,
+      idRol: undefined,
+      estadoActivo: true,
     },
   });
 
@@ -146,27 +130,26 @@ export default function UsersPage() {
   const handleOpenDialog = (usuario?: Usuario) => {
     if (usuario) {
       setEditingUsuario(usuario);
-      // Actualizar el resolver para usar el schema de actualización
-      form.clearErrors();
+      // Cambiar el resolver al de actualización
+      form.resolver(zodResolver(updateUsuarioSchema));
       form.reset({
         nombreCompleto: usuario.nombreCompleto,
         email: usuario.email,
         contrasena: '', // No mostrar la contraseña
         telefono: usuario.telefono || '',
         idRol: usuario.idRol,
-        estadoActivo: usuario.estadoActivo === 1 ? 1 : 0, // Convertir numeric a numeric
+        estadoActivo: usuario.estadoActivo === 1, // Convertir 1/0 a boolean
       });
     } else {
       setEditingUsuario(null);
-      // Actualizar el resolver para usar el schema de creación
-      form.clearErrors();
+      // Cambiar el resolver al de creación
+      form.resolver(zodResolver(createUsuarioSchema));
       form.reset({
         nombreCompleto: '',
         email: '',
         contrasena: '',
         telefono: '',
-        idRol: 0,
-        estadoActivo: 1,
+        estadoActivo: true,
       });
     }
     setIsDialogOpen(true);
@@ -178,74 +161,30 @@ export default function UsersPage() {
     form.reset();
   };
 
-  const onSubmit = async (data: UsuarioFormInput) => {
+  const onSubmit = async (data: UsuarioFormData) => {
     try {
       setSubmitting(true);
 
-      // Validación específica según el modo
+      // Transformar datos para la API
+      const apiData = {
+        ...data,
+        estadoActivo: data.estadoActivo ? 1 : 0, // Convertir boolean a 1/0
+      };
+
+      // Si la contraseña está vacía en la actualización, no la enviamos
+      if (editingUsuario && !apiData.contrasena) {
+        delete (apiData as any).contrasena;
+      }
+
       if (editingUsuario) {
-        // Validar para actualización
-        const updateValidation = updateUsuarioSchema.safeParse(data);
-        if (!updateValidation.success) {
-          updateValidation.error.errors.forEach((err) => {
-            form.setError(err.path[0] as any, { message: err.message });
-          });
-          setSubmitting(false);
-          return;
-        }
-
-        // Usar los datos transformados por Zod
-        const validatedData = updateValidation.data;
-        const updateData: any = {
-          nombreCompleto: validatedData.nombreCompleto,
-          email: validatedData.email,
-          idRol: validatedData.idRol,
-          estadoActivo: validatedData.estadoActivo, // Ya viene como numeric(1/0) del transform
-        };
-
-        // Solo incluir teléfono si tiene valor
-        if (validatedData.telefono !== undefined && validatedData.telefono !== null && validatedData.telefono !== '') {
-          updateData.telefono = validatedData.telefono;
-        }
-
-        // Solo actualizar contraseña si se proporcionó una nueva (no vacía)
-        if (data.contrasena && data.contrasena.trim().length > 0) {
-          if (data.contrasena.length < 6) {
-            form.setError('contrasena', {
-              message: 'La contraseña debe tener al menos 6 caracteres',
-            });
-            setSubmitting(false);
-            return;
-          }
-          updateData.contrasena = data.contrasena;
-        }
-
-        await updateUsuario(editingUsuario.idUsuario, updateData);
+        await updateUsuario(editingUsuario.idUsuario, apiData);
         toast({
           title: 'Usuario actualizado',
           description: 'El usuario ha sido actualizado correctamente.',
         });
       } else {
-        // Validar para creación
-        const createValidation = createUsuarioSchema.safeParse(data);
-        if (!createValidation.success) {
-          createValidation.error.errors.forEach((err) => {
-            form.setError(err.path[0] as any, { message: err.message });
-          });
-          setSubmitting(false);
-          return;
-        }
-
-        // Usar los datos transformados por Zod
-        const validatedData = createValidation.data;
-        await createUsuario({
-          nombreCompleto: validatedData.nombreCompleto,
-          email: validatedData.email,
-          contrasena: validatedData.contrasena,
-          idRol: validatedData.idRol,
-          estadoActivo: validatedData.estadoActivo, // Ya viene como numeric(1/0) del transform
-          telefono: validatedData.telefono,
-        });
+        // Zod ya validó que la contraseña existe para la creación
+        await createUsuario(apiData as any);
         toast({
           title: 'Usuario creado',
           description: 'El usuario ha sido creado correctamente.',
@@ -509,10 +448,7 @@ export default function UsersPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Rol</FormLabel>
-                    <Select
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      value={field.value?.toString() || ''}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecciona un rol" />
@@ -540,8 +476,8 @@ export default function UsersPage() {
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value === 1}
-                        onCheckedChange={(v) => field.onChange(v ? 1 : 0)}
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
                       />
                     </FormControl>
                   </FormItem>
