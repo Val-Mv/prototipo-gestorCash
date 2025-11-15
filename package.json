@@ -20,8 +20,7 @@
     "typecheck:server": "cd app/server && npm run typecheck",
     "install:web": "cd app/web && npm install",
     "install:server": "cd app/server && npm install",
-    "install:all": "npm run install:server && npm run install:web",
-      "build": "vite build"
+    "install:all": "npm run install:server && npm run install:web"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
