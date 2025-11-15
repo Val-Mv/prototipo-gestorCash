@@ -1,12 +1,12 @@
 import type { AppUser } from '@/lib/types';
-import { mockUsers } from '@/lib/data';
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '@/lib/api-config';
 
 interface AuthContextType {
   user: AppUser | null;
   loading: boolean;
-  login: (email: string) => Promise<void>;
+  login: (email: string, contrasena: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -38,17 +38,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, []);
 
-  const login = useCallback(async (email: string) => {
+  const login = useCallback(async (email: string, contrasena: string) => {
     setLoading(true);
     try {
-      // Mock authentication
-      const foundUser = mockUsers[email];
-      if (foundUser) {
-        setUser(foundUser);
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(foundUser));
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, contrasena }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Credenciales incorrectas');
+      }
+
+      const { user: loggedInUser, token } = await response.json();
+
+      if (loggedInUser && token) {
+        setUser(loggedInUser);
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser));
+        localStorage.setItem('auth-token', token); // Guardar el token
         navigate('/dashboard');
-      } else {
-        throw new Error('User not found or password incorrect');
       }
     } finally {
       setLoading(false);
@@ -60,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setUser(null);
       localStorage.removeItem(AUTH_STORAGE_KEY);
+      localStorage.removeItem('auth-token'); // Limpiar el token
       navigate('/login');
     } finally {
       setLoading(false);
