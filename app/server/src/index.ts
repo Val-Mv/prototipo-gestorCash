@@ -36,6 +36,28 @@ app.use(express.json());
 // Router principal para la API
 const apiRouter = express.Router();
 
+// Variable para rastrear el estado de la conexión
+let isDbSynced = false;
+
+// Middleware para asegurar la conexión a la base de datos
+const ensureDbConnection = async (
+  _req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!isDbSynced) {
+    try {
+      await syncDatabase();
+      isDbSynced = true;
+    } catch (error) {
+      console.error('❌ Database connection failed on initial request:', error);
+      return res.status(503).json({ error: 'Service Unavailable: Could not connect to the database.' });
+    }
+  }
+  next();
+};
+apiRouter.use(ensureDbConnection);
+
 apiRouter.get('/health', (_req, res) => {
   res.json({ status: 'healthy' });
 });
@@ -70,10 +92,6 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
     error: err.message || 'Error interno del servidor',
   });
 });
-
-// Sincronizar la base de datos al iniciar.
-// En un entorno serverless, esto puede ejecutarse en cada "cold start".
-syncDatabase().catch(err => console.error('❌ Error al sincronizar la base de datos:', err));
 
 // Exportar la app de Express para que Vercel la pueda usar.
 // Vercel se encarga de ejecutar el servidor.
