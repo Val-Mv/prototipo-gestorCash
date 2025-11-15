@@ -34,29 +34,32 @@ if (process.env.FRONTEND_URL) {
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
-// Rutas
+// Router principal para la API
+const apiRouter = express.Router();
+
+apiRouter.get('/health', (_req, res) => {
+  res.json({ status: 'healthy' });
+});
+
+apiRouter.use('/gastos', gastosRoutes);
+apiRouter.use('/ventas-diarias', ventasDiariasRoutes);
+apiRouter.use('/bitacoras', bitacorasRoutes);
+apiRouter.use('/usuarios', usuariosRoutes);
+apiRouter.use('/stores', storesRoutes);
+apiRouter.use('/conteos', conteosRoutes);
+apiRouter.use('/diferencias-caja', diferenciasCajaRoutes);
+apiRouter.use('/tipos-conteo', tiposConteoRoutes);
+apiRouter.use('/tipos-diferencia', tiposDiferenciaRoutes);
+apiRouter.use('/reportes-diarios', reportesDiariosRoutes);
+
+app.use('/api', apiRouter);
+
 app.get('/', (_req, res) => {
   res.json({
     message: 'GestorCash API',
     version: '1.0.0',
-    docs: '/api/health',
   });
 });
-
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'healthy' });
-});
-
-app.use('/api/gastos', gastosRoutes);
-app.use('/api/ventas-diarias', ventasDiariasRoutes);
-app.use('/api/bitacoras', bitacorasRoutes);
-app.use('/api/usuarios', usuariosRoutes);
-app.use('/api/stores', storesRoutes);
-app.use('/api/conteos', conteosRoutes);
-app.use('/api/diferencias-caja', diferenciasCajaRoutes);
-app.use('/api/tipos-conteo', tiposConteoRoutes);
-app.use('/api/tipos-diferencia', tiposDiferenciaRoutes);
-app.use('/api/reportes-diarios', reportesDiariosRoutes);
 
 // Manejo de errores
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
