@@ -49,12 +49,15 @@ const ensureDbConnection = async (
     try {
       await syncDatabase();
       isDbSynced = true;
+      // Si la sincronización es exitosa, pasamos al siguiente middleware.
+      return next();
     } catch (error) {
       console.error('❌ Database connection failed on initial request:', error);
       return res.status(503).json({ error: 'Service Unavailable: Could not connect to the database.' });
     }
   }
-  next();
+  // Si la BD ya está sincronizada, simplemente continuamos.
+  return next();
 };
 apiRouter.use(ensureDbConnection);
 
