@@ -43,12 +43,12 @@ Conteo.init(
       field: 'fechahora',
     },
     montoContado: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       field: 'montocontado',
     },
     montoEsperado: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       field: 'montoesperado',
     },

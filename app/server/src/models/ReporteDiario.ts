@@ -12,8 +12,6 @@ export interface ReporteDiarioAttributes {
   totalGastosDia: number;
   totalDiferencias: number;
   idUsuarioGenerador: number;
-  resumenDiferencias?: string | null;
-  cantidadDiferencias?: number | null;
 }
 
 export interface ReporteDiarioCreationAttributes
@@ -28,8 +26,6 @@ export interface ReporteDiarioCreationAttributes
     | 'totalTarjeta'
     | 'totalGastosDia'
     | 'totalDiferencias'
-    | 'resumenDiferencias'
-    | 'cantidadDiferencias'
   > {}
 
 export class ReporteDiario
@@ -46,8 +42,6 @@ export class ReporteDiario
   public totalGastosDia!: number;
   public totalDiferencias!: number;
   public idUsuarioGenerador!: number;
-  public resumenDiferencias?: string | null;
-  public cantidadDiferencias?: number | null;
 }
 
 ReporteDiario.init(
@@ -65,13 +59,13 @@ ReporteDiario.init(
       field: 'fecha',
     },
     totalVentas: {
-      type: DataTypes.DECIMAL(18, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'totalventas',
     },
     saldoFinal: {
-      type: DataTypes.DECIMAL(18, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'saldofinal',
@@ -83,25 +77,25 @@ ReporteDiario.init(
       field: 'totalclientestotal',
     },
     totalEfectivo: {
-      type: DataTypes.DECIMAL(18, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'totalefectivototal',
     },
     totalTarjeta: {
-      type: DataTypes.DECIMAL(18, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'totaltarjeta',
     },
     totalGastosDia: {
-      type: DataTypes.DECIMAL(18, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'totalgastosdia',
     },
     totalDiferencias: {
-      type: DataTypes.DECIMAL(18, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'totaldiferencias',
@@ -110,16 +104,6 @@ ReporteDiario.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'idusuariogenerador',
-    },
-    resumenDiferencias: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      field: 'resumendiferencias',
-    },
-    cantidadDiferencias: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'cantidaddiferencias',
     },
   },
   {

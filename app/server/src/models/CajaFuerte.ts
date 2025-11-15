@@ -6,12 +6,11 @@ export interface CajaFuerteAttributes {
   codigo: string;
   saldoActual: number;
   limiteMaximo: number;
-  ubicacion?: string | null;
   fechaUltimaActualizacion?: Date;
 }
 
 export interface CajaFuerteCreationAttributes
-  extends Optional<CajaFuerteAttributes, 'idCajaFuerte' | 'ubicacion' | 'fechaUltimaActualizacion'> {}
+  extends Optional<CajaFuerteAttributes, 'idCajaFuerte' | 'fechaUltimaActualizacion'> {}
 
 export class CajaFuerte
   extends Model<CajaFuerteAttributes, CajaFuerteCreationAttributes>
@@ -21,7 +20,6 @@ export class CajaFuerte
   public codigo!: string;
   public saldoActual!: number;
   public limiteMaximo!: number;
-  public ubicacion?: string | null;
   public fechaUltimaActualizacion?: Date;
 }
 
@@ -40,20 +38,15 @@ CajaFuerte.init(
       field: 'codigo',
     },
     saldoActual: {
-      type: DataTypes.DECIMAL(18, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'saldoactual',
     },
     limiteMaximo: {
-      type: DataTypes.DECIMAL(18, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       field: 'limitemaximo',
-    },
-    ubicacion: {
-      type: DataTypes.STRING(150),
-      allowNull: true,
-      field: 'ubicacion',
     },
     fechaUltimaActualizacion: {
       type: DataTypes.DATE,

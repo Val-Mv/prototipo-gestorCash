@@ -8,6 +8,7 @@ import gastosRoutes from './routes/gastos';
 import ventasDiariasRoutes from './routes/ventas-diarias';
 import bitacorasRoutes from './routes/bitacoras';
 import usuariosRoutes from './routes/usuarios';
+import authRoutes from './routes/auth';
 import storesRoutes from './routes/stores';
 import conteosRoutes from './routes/conteos';
 import diferenciasCajaRoutes from './routes/diferencias-caja';
@@ -47,6 +48,13 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'healthy' });
 });
 
+// Rutas de autenticación (sin prefijo /api)
+app.use('/auth', authRoutes);
+
+// Rutas de usuario (sin prefijo /api)
+app.use('/usuario', usuariosRoutes);
+
+// Rutas con prefijo /api (mantener compatibilidad)
 app.use('/api/gastos', gastosRoutes);
 app.use('/api/ventas-diarias', ventasDiariasRoutes);
 app.use('/api/bitacoras', bitacorasRoutes);

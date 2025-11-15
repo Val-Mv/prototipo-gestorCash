@@ -34,23 +34,31 @@ CategoriaGasto.init(
       field: 'idcategoria',
     },
     nombre: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
     },
     descripcion: {
-      type: DataTypes.STRING(400),
+      type: DataTypes.STRING(300),
       allowNull: true,
     },
     presupuestoMensual: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
       field: 'presupuestomensual',
     },
     activa: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER,
+      field: 'activa',
       allowNull: false,
-      defaultValue: true,
+      defaultValue: 1,
+      get() {
+        const raw = this.getDataValue('activa') as unknown as number;
+        return raw === 1;
+      },
+      set(value: boolean) {
+        this.setDataValue('activa', value ? 1 : 0 as any);
+      },
     },
     idUsuarioCreacion: {
       type: DataTypes.INTEGER,
@@ -60,7 +68,7 @@ CategoriaGasto.init(
   },
   {
     sequelize,
-    tableName: 'categoria_gasto',
+    tableName: 'categoriagasto',
     timestamps: false,
     indexes: [
       {

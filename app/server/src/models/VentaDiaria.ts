@@ -50,13 +50,13 @@ VentaDiaria.init(
       field: 'totalclientes',
     },
     totalEfectivo: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'totalefectivo',
     },
     totalTarjeta: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'totaltarjeta',

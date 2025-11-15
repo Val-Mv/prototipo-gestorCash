@@ -48,8 +48,8 @@ export interface Gasto {
   fecha: string;
   monto: number;
   descripcion: string;
-  numeroComprobante: string;
-  rutaComprobante?: string | null;
+  numeroComprobante: string | null; // Puede ser null según DDL
+  rutaComprobante: string | null; // Puede ser null según DDL
   idCaja?: number | null;
   idUsuarioRegistro: number;
   idUsuarioAprobacion?: number | null;

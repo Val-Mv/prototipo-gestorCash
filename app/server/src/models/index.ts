@@ -43,8 +43,9 @@ Gasto.belongsTo(EstadoGasto, { foreignKey: 'idEstadoGasto', as: 'estado' });
 CajaRegistradora.hasMany(VentaDiaria, { foreignKey: 'idCaja', as: 'ventasDiarias' });
 VentaDiaria.belongsTo(CajaRegistradora, { foreignKey: 'idCaja', as: 'caja' });
 
-Usuario.hasMany(VentaDiaria, { foreignKey: 'idUsuario', as: 'ventasRegistradas' });
-VentaDiaria.belongsTo(Usuario, { foreignKey: 'idUsuario', as: 'usuarioVenta' });
+// VentaDiaria usa idusuariogeneral, no idusuario
+Usuario.hasMany(VentaDiaria, { foreignKey: 'idUsuario', sourceKey: 'idUsuario', as: 'ventasRegistradas' });
+VentaDiaria.belongsTo(Usuario, { foreignKey: 'idUsuario', targetKey: 'idUsuario', as: 'usuarioVenta' });
 
 Usuario.hasMany(BitacoraAuditoria, { foreignKey: 'idUsuario', as: 'bitacoras' });
 BitacoraAuditoria.belongsTo(Usuario, { foreignKey: 'idUsuario', as: 'usuarioBitacora' });

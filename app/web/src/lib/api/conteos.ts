@@ -8,24 +8,24 @@ export interface Conteo {
   fechaHora: string;
   montoContado: number;
   montoEsperado: number;
-  diferencia: number;
+  diferencia: number; // Campo virtual calculado
   observaciones?: string | null;
   idCaja: number;
   idUsuario: number;
   idTipoConteo: number;
-  idReporte?: number | null;
+  // idReporte eliminado - no existe en el DDL
 }
 
 export interface CreateConteoPayload {
   fechaHora?: string;
   montoContado: number;
   montoEsperado: number;
-  diferencia: number;
   observaciones?: string | null;
   idCaja: number;
   idUsuario: number;
   idTipoConteo: number;
-  idReporte?: number | null;
+  // idReporte eliminado - no existe en el DDL
+  // diferencia es virtual, no se envía
 }
 
 /**
@@ -47,7 +47,7 @@ export interface GetConteosParams {
   idCaja?: number;
   idUsuario?: number;
   idTipoConteo?: number;
-  idReporte?: number;
+  // idReporte eliminado - no existe en el DDL
   fechaDesde?: string;
   fechaHasta?: string;
 }
@@ -60,13 +60,16 @@ export async function getConteos(params: GetConteosParams = {}): Promise<Conteo[
   if (typeof params.idCaja === 'number') searchParams.append('idCaja', String(params.idCaja));
   if (typeof params.idUsuario === 'number') searchParams.append('idUsuario', String(params.idUsuario));
   if (typeof params.idTipoConteo === 'number') searchParams.append('idTipoConteo', String(params.idTipoConteo));
-  if (typeof params.idReporte === 'number') searchParams.append('idReporte', String(params.idReporte));
+  // idReporte eliminado - no existe en el DDL
   if (params.fechaDesde) searchParams.append('fechaDesde', params.fechaDesde);
   if (params.fechaHasta) searchParams.append('fechaHasta', params.fechaHasta);
 
   const queryString = searchParams.toString();
   return apiRequest<Conteo[]>(`/api/conteos${queryString ? `?${queryString}` : ''}`);
 }
+
+
+
 
 
 

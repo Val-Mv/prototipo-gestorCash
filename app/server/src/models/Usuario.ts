@@ -5,7 +5,7 @@ export interface UsuarioAttributes {
   idUsuario: number;
   nombreCompleto: string;
   email: string;
-  contrasenaHash: string;
+  contrasenahash: string;
   telefono?: string | null;
   fechaCreacion?: Date;
   estadoActivo: boolean;
@@ -19,7 +19,7 @@ export class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes>
   public idUsuario!: number;
   public nombreCompleto!: string;
   public email!: string;
-  public contrasenaHash!: string;
+  public contrasenahash!: string;
   public telefono?: string | null;
   public fechaCreacion?: Date;
   public estadoActivo!: boolean;
@@ -40,18 +40,18 @@ Usuario.init(
       field: 'nombrecompleto',
     },
     email: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
       field: 'email',
     },
-    contrasenaHash: {
+    contrasenahash: {
       type: DataTypes.STRING(255),
       allowNull: false,
       field: 'contrasenahash',
     },
     telefono: {
-      type: DataTypes.STRING(30),
+      type: DataTypes.STRING(20),
       allowNull: true,
       field: 'telefono',
     },
@@ -63,17 +63,19 @@ Usuario.init(
     },
     estadoActivo: {
       type: DataTypes.INTEGER,
-      field: 'estadoactivo',
-      allowNull: true,
+      allowNull: false,
       defaultValue: 1,
+      field: 'estadoactivo',
       get() {
-        const raw = this.getDataValue('estadoActivo') as unknown as number | null;
-        return raw === 1;
+        const raw = (this as any).getDataValue('estadoactivo');
+        return Number(raw) === 1;
       },
-      set(value: boolean) {
-        this.setDataValue('estadoActivo', (value ? 1 : 0) as unknown as boolean);
+      set(value: boolean | number | string) {
+        const val = value === true || value === 1 || value === "1" ? 1 : 0;
+        (this as any).setDataValue('estadoactivo', val);
       },
     },
+
     idRol: {
       type: DataTypes.INTEGER,
       allowNull: false,

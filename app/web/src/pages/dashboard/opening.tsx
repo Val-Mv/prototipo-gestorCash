@@ -173,12 +173,12 @@ export default function OpeningPage() {
           fechaHora: timestamp,
           montoContado: value,
           montoEsperado: REQUIRED_OPENING_AMOUNT,
-          diferencia: value - REQUIRED_OPENING_AMOUNT,
+          // diferencia es virtual, no se envía
           observaciones: null,
           idCaja: register.idCaja,
           idUsuario: user.idUsuario!,
           idTipoConteo: openingTypeId,
-          idReporte: null,
+          // idReporte eliminado - no existe en el DDL
         });
       })
     )

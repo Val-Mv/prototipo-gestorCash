@@ -34,9 +34,17 @@ Store.init(
       unique: true,
     },
     active: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER,
+      field: 'active',
       allowNull: false,
-      defaultValue: true,
+      defaultValue: 1,
+      get() {
+        const raw = this.getDataValue('active') as unknown as number;
+        return raw === 1;
+      },
+      set(value: boolean) {
+        this.setDataValue('active', value ? 1 : 0 as any);
+      },
     },
   },
   {

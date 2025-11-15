@@ -125,3 +125,6 @@ docker exec gestor-postgres psql -U admin -d gestorcash -c "SELECT 'store' as ta
 
 
 
+
+
+

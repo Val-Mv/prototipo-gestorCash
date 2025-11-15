@@ -46,12 +46,12 @@ DiferenciaCaja.init(
       field: 'fecha',
     },
     montoEsperado: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       field: 'montoesperado',
     },
     montoReal: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       field: 'montoreal',
     },
@@ -68,10 +68,17 @@ DiferenciaCaja.init(
       // Nota: Esta columna no existe en la tabla, se marca como virtual
     },
     resuelta: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
+      type: DataTypes.INTEGER,
       field: 'resuelta',
+      allowNull: false,
+      defaultValue: 0,
+      get() {
+        const raw = this.getDataValue('resuelta') as unknown as number;
+        return raw === 1;
+      },
+      set(value: boolean) {
+        this.setDataValue('resuelta', value ? 1 : 0 as any);
+      },
     },
     idConteo: {
       type: DataTypes.INTEGER,

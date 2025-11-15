@@ -987,3 +987,6 @@ El proyecto **GestorCash** está en un estado **funcional y operativo**, con las
 
 **Fin del Reporte**
 
+
+
+

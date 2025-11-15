@@ -6,8 +6,8 @@ export interface GastoAttributes {
   fecha: Date;
   monto: number;
   descripcion: string;
-  numeroComprobante: string;
-  rutaComprobante: string;
+  numeroComprobante: string | null;
+  rutaComprobante: string | null;
   idCaja: number | null;
   idUsuarioRegistro: number;
   idUsuarioAprobacion: number | null;
@@ -27,8 +27,8 @@ export class Gasto extends Model<GastoAttributes, GastoCreationAttributes> imple
   public fecha!: Date;
   public monto!: number;
   public descripcion!: string;
-  public numeroComprobante!: string;
-  public rutaComprobante!: string;
+  public numeroComprobante!: string | null;
+  public rutaComprobante!: string | null;
   public idCaja!: number | null;
   public idUsuarioRegistro!: number;
   public idUsuarioAprobacion!: number | null;
@@ -52,7 +52,7 @@ Gasto.init(
       field: 'fecha',
     },
     monto: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       field: 'monto',
     },
@@ -62,13 +62,13 @@ Gasto.init(
       field: 'descripcion',
     },
     numeroComprobante: {
-      type: DataTypes.STRING(200),
-      allowNull: false,
+      type: DataTypes.STRING(50),
+      allowNull: true,
       field: 'numerocomprobante',
     },
     rutaComprobante: {
-      type: DataTypes.STRING(400),
-      allowNull: false,
+      type: DataTypes.STRING(300),
+      allowNull: true,
       field: 'rutacomprobante',
     },
     idCaja: {

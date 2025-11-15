@@ -1,0 +1,156 @@
+# Resumen de Correcciones del Backend
+
+## 📋 Archivos Modificados
+
+### 1. Modelos Corregidos
+
+#### `app/server/src/models/CategoriaGasto.ts`
+- ✅ **Corrección:** `tableName` cambiado de `'categoria_gasto'` a `'categoriagasto'` (sin guión bajo)
+- ✅ **Corrección:** `nombre` cambiado de VARCHAR(150) a VARCHAR(100)
+- ✅ **Corrección:** `descripcion` cambiado de VARCHAR(400) a VARCHAR(300)
+
+#### `app/server/src/models/Usuario.ts`
+- ✅ **Corrección:** `email` cambiado de VARCHAR(150) a VARCHAR(100)
+- ✅ **Corrección:** `telefono` cambiado de VARCHAR(30) a VARCHAR(20)
+
+#### `app/server/src/models/CajaRegistradora.ts`
+- ✅ **Corrección:** `numeroCaja` cambiado de VARCHAR(50) a VARCHAR(20)
+- ✅ **Corrección:** `montoInicialRequerido` cambiado de DECIMAL(14,2) a DECIMAL(10,2) con default 75.00
+- ✅ **Corrección:** `ubicacion` cambiado de VARCHAR(150) a VARCHAR(100)
+
+#### `app/server/src/models/CajaFuerte.ts`
+- ✅ **Corrección:** Eliminado campo `ubicacion` (no existe en DDL)
+- ✅ **Corrección:** `saldoActual` cambiado de DECIMAL(18,2) a DECIMAL(12,2)
+- ✅ **Corrección:** `limiteMaximo` cambiado de DECIMAL(18,2) a DECIMAL(12,2)
+
+#### `app/server/src/models/Gasto.ts`
+- ✅ **Corrección:** `numeroComprobante` cambiado a nullable y VARCHAR(50) (antes VARCHAR(200) NOT NULL)
+- ✅ **Corrección:** `rutaComprobante` cambiado a nullable y VARCHAR(300) (antes VARCHAR(400) NOT NULL)
+
+#### `app/server/src/models/ReporteDiario.ts`
+- ✅ **Corrección:** Eliminados campos `resumenDiferencias` y `cantidadDiferencias` (no existen en DDL)
+
+### 2. Rutas Creadas/Modificadas
+
+#### `app/server/src/routes/auth.ts` (NUEVO)
+- ✅ **Creado:** Ruta `POST /auth/login`
+  - Valida email y contraseña
+  - Compara contraseña con bcrypt
+  - Verifica `estadoActivo = 1`
+  - Hace JOIN con tabla `rol`
+  - Retorna token JWT + datos del usuario + nombre del rol
+
+#### `app/server/src/routes/usuarios.ts`
+- ✅ **Modificado:** `POST /usuario`
+  - Ahora acepta `contrasena` (no `contrasenaHash`)
+  - Hashea la contraseña con bcrypt antes de guardar
+  - Convierte `estadoActivo` boolean → numeric(1/0)
+  - No retorna `contrasenaHash` en la respuesta
+
+- ✅ **Modificado:** `GET /usuario`
+  - Ahora hace JOIN con tabla `rol`
+  - Retorna solo campos: `idUsuario`, `nombreCompleto`, `email`, `estadoActivo`, `nombreRol`
+
+- ✅ **Creado:** `PATCH /usuario/:id/estado`
+  - Actualiza solo el campo `estadoActivo`
+  - Acepta boolean o number (1/0)
+  - Convierte correctamente a numeric
+
+- ✅ **Modificado:** `PUT /usuario/:idUsuario`
+  - Si se actualiza `contrasena`, la hashea con bcrypt
+  - No retorna `contrasenaHash` en la respuesta
+
+### 3. Schemas Creados/Modificados
+
+#### `app/server/src/schemas/auth.ts` (NUEVO)
+- ✅ **Creado:** Schema de validación para login
+  - `email`: string con validación de email
+  - `contrasena`: string requerido
+
+#### `app/server/src/schemas/usuario.ts`
+- ✅ **Modificado:** `usuarioCreateSchema`
+  - Cambiado `contrasenaHash` por `contrasena`
+  - `estadoActivo` acepta boolean o number
+  - `telefono` ahora es opcional sin mínimo de caracteres
+
+- ✅ **Creado:** `usuarioEstadoSchema`
+  - Para validar el body de `PATCH /usuario/:id/estado`
+
+### 4. Configuración
+
+#### `app/server/src/index.ts`
+- ✅ **Modificado:** Agregadas rutas sin prefijo `/api`
+  - `/auth` → rutas de autenticación
+  - `/usuario` → rutas de usuario
+  - Mantiene compatibilidad con `/api/usuarios`
+
+#### `app/server/package.json`
+- ✅ **Agregado:** `@types/bcrypt` y `@types/jsonwebtoken` en devDependencies
+- ✅ **Verificado:** `bcrypt` y `jsonwebtoken` ya estaban instalados
+
+## ✅ Validaciones Realizadas
+
+### Tablas Verificadas (Todas en singular)
+- ✅ `usuario` (correcto)
+- ✅ `rol` (correcto)
+- ✅ `caja_fuerte` (correcto)
+- ✅ `caja_registradora` (correcto)
+- ✅ `estado_gasto` (correcto)
+- ✅ `tipo_conteo` (correcto)
+- ✅ `tipo_diferencia` (correcto)
+- ✅ `venta_diaria` (correcto)
+- ✅ `bitacora_auditoria` (correcto)
+- ✅ `categoriagasto` (corregido: era `categoria_gasto`)
+- ✅ `conteo` (correcto)
+- ✅ `diferencia_caja` (correcto)
+- ✅ `gasto` (correcto)
+- ✅ `reporte_diario` (correcto)
+- ✅ `store` (correcto)
+
+## 🧪 Endpoints Listos para Probar
+
+### 1. Login
+```bash
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"dm@company.com","contrasena":"dm-123"}'
+```
+
+### 2. Crear Usuario
+```bash
+curl -X POST http://localhost:3000/usuario \
+  -H "Content-Type: application/json" \
+  -d '{"nombreCompleto":"Test","email":"test@mail.com","contrasena":"123","telefono":"111","idRol":1}'
+```
+
+### 3. Cambiar Estado
+```bash
+curl -X PATCH http://localhost:3000/usuario/1/estado \
+  -H "Content-Type: application/json" \
+  -d '{"estadoActivo":0}'
+```
+
+### 4. Listar Usuarios
+```bash
+curl http://localhost:3000/usuario
+```
+
+## 📝 Notas Importantes
+
+1. **Tablas en Singular:** Todas las tablas están en singular según el DDL real
+2. **Bcrypt:** Las contraseñas se hashean automáticamente al crear/actualizar usuarios
+3. **Estado Activo:** Se maneja como numeric(1/0) en la BD pero como boolean en el código
+4. **Compatibilidad:** Se mantienen rutas `/api/*` para compatibilidad con código existente
+5. **Campos Eliminados:** Se eliminaron campos que no existen en el DDL real:
+   - `ReporteDiario.resumenDiferencias`
+   - `ReporteDiario.cantidadDiferencias`
+   - `CajaFuerte.ubicacion`
+
+## 🔄 Próximos Pasos
+
+1. Ejecutar `npm install` en `app/server` para instalar los tipos de TypeScript
+2. Probar los endpoints con los comandos curl proporcionados
+3. Verificar que el frontend pueda consumir las nuevas rutas
+4. Revisar otros módulos (gastos, ventas, etc.) para asegurar consistencia
+
+

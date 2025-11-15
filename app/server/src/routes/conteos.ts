@@ -47,7 +47,6 @@ router.get('/', async (req: Request, res: Response) => {
       idCaja,
       idUsuario,
       idTipoConteo,
-      idReporte,
       fechaDesde,
       fechaHasta,
     } = req.query;
@@ -56,7 +55,6 @@ router.get('/', async (req: Request, res: Response) => {
     if (idCaja) where.idCaja = Number(idCaja);
     if (idUsuario) where.idUsuario = Number(idUsuario);
     if (idTipoConteo) where.idTipoConteo = Number(idTipoConteo);
-    if (idReporte) where.idReporte = Number(idReporte);
 
     if (fechaDesde && fechaHasta) {
       where.fechaHora = {

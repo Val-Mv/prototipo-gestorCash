@@ -31,7 +31,7 @@ export function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      await login(values.email);
+      await login(values.email, values.password);
       // The auth provider handles redirection on success
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido.');

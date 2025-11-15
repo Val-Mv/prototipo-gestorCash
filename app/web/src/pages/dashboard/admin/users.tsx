@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getUsuarios, createUsuario, updateUsuario, deleteUsuario, type Usuario } from '@/lib/api/usuarios';
+import { getUsuarios, createUsuario, updateUsuario, cambiarEstadoUsuario, type Usuario } from '@/lib/api/usuarios';
 import { getRoles, type Rol } from '@/lib/api/roles';
 import { getStores, type Store } from '@/lib/api/stores';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -46,8 +46,8 @@ import { format } from 'date-fns';
 
 const createUsuarioSchema = z.object({
   nombreCompleto: z.string().min(1, 'El nombre es requerido').max(150),
-  email: z.string().email('Email inválido').max(150),
-  contrasenaHash: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(255),
+  email: z.string().email('Email inválido').max(100),
+  contrasena: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(255),
   telefono: z
     .string()
     .max(20, 'El teléfono es demasiado largo')
@@ -55,13 +55,16 @@ const createUsuarioSchema = z.object({
     .or(z.literal(''))
     .transform((value) => (value === '' || !value ? undefined : value)),
   idRol: z.number().int().positive('Debe seleccionar un rol'),
-  estadoActivo: z.boolean().optional().default(true),
+  estadoActivo: z.union([z.boolean(), z.number()]).optional().default(true).transform((val) => {
+    if (typeof val === 'boolean') return val ? 1 : 0;
+    return val === 1 ? 1 : 0;
+  }),
 });
 
 const updateUsuarioSchema = z.object({
   nombreCompleto: z.string().min(1, 'El nombre es requerido').max(150),
-  email: z.string().email('Email inválido').max(150),
-  contrasenaHash: z.string().max(255).optional(),
+  email: z.string().email('Email inválido').max(100),
+  contrasena: z.string().max(255).optional(),
   telefono: z
     .string()
     .max(20, 'El teléfono es demasiado largo')
@@ -69,16 +72,19 @@ const updateUsuarioSchema = z.object({
     .or(z.literal(''))
     .transform((value) => (value === '' || !value ? undefined : value)),
   idRol: z.number().int().positive('Debe seleccionar un rol'),
-  estadoActivo: z.boolean().optional().default(true),
+  estadoActivo: z.union([z.boolean(), z.number()]).optional().default(true).transform((val) => {
+    if (typeof val === 'boolean') return val ? 1 : 0;
+    return val === 1 ? 1 : 0;
+  }),
 }).refine((data) => {
   // Si se proporciona contraseña, debe tener al menos 6 caracteres
-  if (data.contrasenaHash && data.contrasenaHash.length > 0) {
-    return data.contrasenaHash.length >= 6;
+  if (data.contrasena && data.contrasena.length > 0) {
+    return data.contrasena.length >= 6;
   }
   return true;
 }, {
   message: 'La contraseña debe tener al menos 6 caracteres',
-  path: ['contrasenaHash'],
+  path: ['contrasena'],
 });
 
 type UsuarioFormData = z.infer<typeof createUsuarioSchema>;
@@ -104,10 +110,10 @@ export default function UsersPage() {
     defaultValues: {
       nombreCompleto: '',
       email: '',
-      contrasenaHash: '',
+      contrasena: '',
       telefono: '',
       idRol: 0,
-      estadoActivo: true,
+      estadoActivo: 1,
     },
   });
 
@@ -145,10 +151,10 @@ export default function UsersPage() {
       form.reset({
         nombreCompleto: usuario.nombreCompleto,
         email: usuario.email,
-        contrasenaHash: '', // No mostrar la contraseña
+        contrasena: '', // No mostrar la contraseña
         telefono: usuario.telefono || '',
         idRol: usuario.idRol,
-        estadoActivo: usuario.estadoActivo,
+        estadoActivo: usuario.estadoActivo === 1 ? 1 : 0, // Convertir numeric a numeric
       });
     } else {
       setEditingUsuario(null);
@@ -157,10 +163,10 @@ export default function UsersPage() {
       form.reset({
         nombreCompleto: '',
         email: '',
-        contrasenaHash: '',
+        contrasena: '',
         telefono: '',
         idRol: 0,
-        estadoActivo: true,
+        estadoActivo: 1,
       });
     }
     setIsDialogOpen(true);
@@ -175,7 +181,7 @@ export default function UsersPage() {
   const onSubmit = async (data: UsuarioFormInput) => {
     try {
       setSubmitting(true);
-      
+
       // Validación específica según el modo
       if (editingUsuario) {
         // Validar para actualización
@@ -187,33 +193,33 @@ export default function UsersPage() {
           setSubmitting(false);
           return;
         }
-        
+
         // Usar los datos transformados por Zod
         const validatedData = updateValidation.data;
         const updateData: any = {
           nombreCompleto: validatedData.nombreCompleto,
           email: validatedData.email,
           idRol: validatedData.idRol,
-          estadoActivo: validatedData.estadoActivo,
+          estadoActivo: validatedData.estadoActivo, // Ya viene como numeric(1/0) del transform
         };
-        
+
         // Solo incluir teléfono si tiene valor
         if (validatedData.telefono !== undefined && validatedData.telefono !== null && validatedData.telefono !== '') {
           updateData.telefono = validatedData.telefono;
         }
-        
+
         // Solo actualizar contraseña si se proporcionó una nueva (no vacía)
-        if (data.contrasenaHash && data.contrasenaHash.trim().length > 0) {
-          if (data.contrasenaHash.length < 6) {
-            form.setError('contrasenaHash', {
+        if (data.contrasena && data.contrasena.trim().length > 0) {
+          if (data.contrasena.length < 6) {
+            form.setError('contrasena', {
               message: 'La contraseña debe tener al menos 6 caracteres',
             });
             setSubmitting(false);
             return;
           }
-          updateData.contrasenaHash = data.contrasenaHash;
+          updateData.contrasena = data.contrasena;
         }
-        
+
         await updateUsuario(editingUsuario.idUsuario, updateData);
         toast({
           title: 'Usuario actualizado',
@@ -229,15 +235,15 @@ export default function UsersPage() {
           setSubmitting(false);
           return;
         }
-        
+
         // Usar los datos transformados por Zod
         const validatedData = createValidation.data;
         await createUsuario({
           nombreCompleto: validatedData.nombreCompleto,
           email: validatedData.email,
-          contrasenaHash: validatedData.contrasenaHash,
+          contrasena: validatedData.contrasena,
           idRol: validatedData.idRol,
-          estadoActivo: validatedData.estadoActivo,
+          estadoActivo: validatedData.estadoActivo, // Ya viene como numeric(1/0) del transform
           telefono: validatedData.telefono,
         });
         toast({
@@ -245,7 +251,7 @@ export default function UsersPage() {
           description: 'El usuario ha sido creado correctamente.',
         });
       }
-      
+
       await loadData();
       handleCloseDialog();
     } catch (error: any) {
@@ -268,17 +274,21 @@ export default function UsersPage() {
     if (!deletingUsuario) return;
 
     try {
-      await deleteUsuario(deletingUsuario.idUsuario);
+      // Usar el endpoint de cambio de estado
+      const nuevoEstado = deletingUsuario.estadoActivo === 1 ? 0 : 1;
+      await cambiarEstadoUsuario(deletingUsuario.idUsuario, nuevoEstado);
       toast({
-        title: 'Usuario desactivado',
-        description: 'El usuario ha sido desactivado correctamente.',
+        title: nuevoEstado === 1 ? 'Usuario activado' : 'Usuario desactivado',
+        description: nuevoEstado === 1
+          ? 'El usuario ha sido activado correctamente.'
+          : 'El usuario ha sido desactivado correctamente.',
       });
       await loadData();
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Error al desactivar',
-        description: error.message || 'No se pudo desactivar el usuario',
+        title: 'Error al cambiar estado',
+        description: error.message || 'No se pudo cambiar el estado del usuario',
       });
     } finally {
       setIsDeleteDialogOpen(false);
@@ -286,8 +296,13 @@ export default function UsersPage() {
     }
   };
 
-  const getRolName = (idRol: number) => {
-    const rol = roles.find(r => r.idRol === idRol);
+  const getRolName = (usuario: Usuario) => {
+    // Priorizar nombreRol del JOIN si está disponible
+    if (usuario.nombreRol) {
+      return usuario.nombreRol;
+    }
+    // Fallback a buscar en roles
+    const rol = roles.find(r => r.idRol === usuario.idRol);
     return rol?.nombreRol || 'Desconocido';
   };
 
@@ -358,16 +373,16 @@ export default function UsersPage() {
                     <TableCell className="font-medium">{u.nombreCompleto}</TableCell>
                     <TableCell>{u.email}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{getRolName(u.idRol)}</Badge>
+                      <Badge variant="outline">{getRolName(u)}</Badge>
                     </TableCell>
                     <TableCell>{u.telefono || 'N/A'}</TableCell>
                     <TableCell>
-                      <Badge variant={u.estadoActivo ? 'default' : 'destructive'}>
-                        {u.estadoActivo ? 'Activo' : 'Inactivo'}
+                      <Badge variant={u.estadoActivo === 1 ? 'default' : 'destructive'}>
+                        {u.estadoActivo === 1 ? 'Activo' : 'Inactivo'}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {u.fechaCreacion 
+                      {u.fechaCreacion
                         ? format(new Date(u.fechaCreacion), 'dd/MM/yyyy')
                         : 'N/A'}
                     </TableCell>
@@ -386,12 +401,12 @@ export default function UsersPage() {
                             Editar
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => handleDelete(u)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {u.estadoActivo ? 'Desactivar' : 'Activar'}
+                            {u.estadoActivo === 1 ? 'Desactivar' : 'Activar'}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -412,8 +427,8 @@ export default function UsersPage() {
               {editingUsuario ? 'Editar Usuario' : 'Agregar Usuario'}
             </DialogTitle>
             <DialogDescription>
-              {editingUsuario 
-                ? 'Actualiza la información del usuario.' 
+              {editingUsuario
+                ? 'Actualiza la información del usuario.'
                 : 'Completa el formulario para crear un nuevo usuario.'}
             </DialogDescription>
           </DialogHeader>
@@ -447,16 +462,16 @@ export default function UsersPage() {
               />
               <FormField
                 control={form.control}
-                name="contrasenaHash"
+                name="contrasena"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
                       Contraseña {editingUsuario && '(opcional - dejar vacío para no cambiar)'}
                     </FormLabel>
                     <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder={editingUsuario ? 'Dejar vacío para no cambiar' : 'Mínimo 6 caracteres'} 
+                      <Input
+                        type="password"
+                        placeholder={editingUsuario ? 'Dejar vacío para no cambiar' : 'Mínimo 6 caracteres'}
                         {...field}
                         required={!editingUsuario}
                       />
@@ -477,9 +492,9 @@ export default function UsersPage() {
                   <FormItem>
                     <FormLabel>Teléfono (opcional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="tel" 
-                        placeholder="+1 234 567 8900" 
+                      <Input
+                        type="tel"
+                        placeholder="+1 234 567 8900"
                         {...field}
                         value={field.value || ''}
                       />
@@ -525,8 +540,8 @@ export default function UsersPage() {
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                        checked={field.value === 1}
+                        onCheckedChange={(v) => field.onChange(v ? 1 : 0)}
                       />
                     </FormControl>
                   </FormItem>
@@ -552,7 +567,7 @@ export default function UsersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              {deletingUsuario?.estadoActivo
+              {deletingUsuario?.estadoActivo === 1
                 ? `Se desactivará el usuario ${deletingUsuario.nombreCompleto}. No podrá iniciar sesión hasta que sea reactivado.`
                 : `Se activará el usuario ${deletingUsuario?.nombreCompleto}. Podrá iniciar sesión nuevamente.`}
             </AlertDialogDescription>
@@ -560,7 +575,7 @@ export default function UsersPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete}>
-              {deletingUsuario?.estadoActivo ? 'Desactivar' : 'Activar'}
+              {deletingUsuario?.estadoActivo === 1 ? 'Desactivar' : 'Activar'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

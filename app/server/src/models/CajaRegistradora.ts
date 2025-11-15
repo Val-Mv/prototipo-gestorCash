@@ -34,26 +34,34 @@ CajaRegistradora.init(
       field: 'idcaja',
     },
     numeroCaja: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(20),
       allowNull: false,
       unique: true,
       field: 'numerocaja',
     },
     montoInicialRequerido: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
+      defaultValue: 75.00,
       field: 'montoinicialrequerido',
     },
     ubicacion: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(100),
       allowNull: true,
       field: 'ubicacion',
     },
     estadoActiva: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: true,
+      type: DataTypes.INTEGER,
       field: 'estadoactiva',
+      allowNull: false,
+      defaultValue: 1,
+      get() {
+        const raw = this.getDataValue('estadoActiva') as unknown as number;
+        return raw === 1;
+      },
+      set(value: boolean) {
+        this.setDataValue('estadoActiva', value ? 1 : 0 as any);
+      },
     },
     fechaRegistro: {
       type: DataTypes.DATE,

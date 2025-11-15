@@ -46,7 +46,6 @@ export async function seedRoles() {
             const [result] = await sequelize.query(`
               INSERT INTO rol (nombrerol, descripcion)
               VALUES (:nombreRol, :descripcion)
-              ON CONFLICT (nombrerol) DO NOTHING
               RETURNING idrol, nombrerol, descripcion
             `, {
               replacements: {
@@ -69,7 +68,8 @@ export async function seedRoles() {
         } catch (createError: any) {
           // Si falla por conflicto único, el rol ya existe
           if (createError.name === 'SequelizeUniqueConstraintError' || 
-              createError.code === '23505') {
+              createError.code === '23505' ||
+              (createError.parent && createError.parent.code === '23505')) {
             existingCount++;
             console.log(`  ℹ️  Rol "${rolData.nombreRol}" ya existe`);
           } else {

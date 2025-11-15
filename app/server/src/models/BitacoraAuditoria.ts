@@ -6,7 +6,7 @@ export interface BitacoraAuditoriaAttributes {
   fechaHora: Date;
   accion: string;
   tablaModificada: string;
-  registroAfectado: string;
+  registroAfectado: string | null;
   descripcion?: string | null;
   valoresAnteriores?: string | null;
   valoresNuevos?: string | null;
@@ -27,7 +27,7 @@ export class BitacoraAuditoria
   public fechaHora!: Date;
   public accion!: string;
   public tablaModificada!: string;
-  public registroAfectado!: string;
+  public registroAfectado!: string | null;
   public descripcion?: string | null;
   public valoresAnteriores?: string | null;
   public valoresNuevos?: string | null;
@@ -50,22 +50,22 @@ BitacoraAuditoria.init(
       field: 'fechahora',
     },
     accion: {
-      type: DataTypes.STRING(200),
+      type: DataTypes.STRING(100),
       allowNull: false,
       field: 'accion',
     },
     tablaModificada: {
-      type: DataTypes.STRING(200),
+      type: DataTypes.STRING(100),
       allowNull: false,
       field: 'moduloAfectado',
     },
     registroAfectado: {
-      type: DataTypes.STRING(200),
-      allowNull: false,
+      type: DataTypes.STRING(100),
+      allowNull: true,
       field: 'registroId',
     },
     descripcion: {
-      type: DataTypes.STRING(1000),
+      type: DataTypes.STRING(500),
       allowNull: true,
       field: 'descripcion',
     },
@@ -80,7 +80,7 @@ BitacoraAuditoria.init(
       field: 'valoresnuevos',
     },
     direccionIP: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(50),
       allowNull: true,
       field: 'direccionip',
     },
