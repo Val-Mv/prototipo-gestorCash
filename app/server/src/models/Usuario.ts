@@ -65,6 +65,7 @@ Usuario.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,
+      field: 'estadoactivo',
     },
 
     idRol: {
