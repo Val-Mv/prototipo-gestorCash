@@ -33,20 +33,18 @@ const handleRouteError = (error: any, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = conteoCreateSchema.parse(req.body);
-    const { fechaHora, montoContado, montoEsperado, ...rest } = validatedData;
-    const diferencia = montoContado - montoEsperado;
+    const { fechaHora, ...rest } = validatedData;
+    const diferencia = validatedData.montoContado - validatedData.montoEsperado;
 
     const conteo = await Conteo.create({
       ...rest,
-      montoContado,
-      montoEsperado,
       diferencia,
       fechaHora: parseFechaHora(fechaHora),
     });
 
     return res.status(201).json(conteo);
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res); // Asegurarse de que el return esté aquí
   }
 });
 
@@ -93,7 +91,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     return res.json(conteos);
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res); // Añadir return
   }
 });
 
@@ -106,7 +104,7 @@ router.get('/:idConteo', async (req: Request, res: Response) => {
 
     return res.json(conteo);
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res); // Añadir return
   }
 });
 
@@ -131,7 +129,7 @@ router.put('/:idConteo', async (req: Request, res: Response) => {
 
     return res.json(conteo);
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res); // Añadir return
   }
 });
 
@@ -145,7 +143,7 @@ router.delete('/:idConteo', async (req: Request, res: Response) => {
     await conteo.destroy();
     return res.json({ mensaje: 'Conteo eliminado correctamente' });
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res); // Añadir return
   }
 });
 

@@ -47,7 +47,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     return res.status(201).json(nuevaDiferencia);
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res);
   }
 });
 
@@ -96,7 +96,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     return res.json(diferencias);
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res);
   }
 });
 
@@ -109,7 +109,7 @@ router.get('/:idDiferencia', async (req: Request, res: Response) => {
 
     return res.json(diferencia);
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res);
   }
 });
 
@@ -135,7 +135,7 @@ router.put('/:idDiferencia', async (req: Request, res: Response) => {
 
     return res.json(diferencia);
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res);
   }
 });
 
@@ -149,7 +149,7 @@ router.delete('/:idDiferencia', async (req: Request, res: Response) => {
     await diferencia.destroy();
     return res.json({ mensaje: 'Diferencia de caja eliminada correctamente' });
   } catch (error: any) {
-    handleRouteError(error, res);
+    return handleRouteError(error, res);
   }
 });
 

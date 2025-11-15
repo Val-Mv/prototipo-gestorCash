@@ -3,10 +3,12 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 // Forzar la inclusión del driver de pg en el bundle de Vercel
 import 'pg';
-import { syncDatabase } from './models';
+import { syncDatabase } from './models'; // Asumiendo que fixSequences y seedRoles no están exportados
+// import { fixSequences, seedRoles } from './models'; // Descomentar cuando se implementen
 import gastosRoutes from './routes/gastos';
 import ventasDiariasRoutes from './routes/ventas-diarias';
 import bitacorasRoutes from './routes/bitacoras';
+// import authRoutes from './routes/auth'; // Descomentar cuando se cree el archivo de rutas de autenticación
 import usuariosRoutes from './routes/usuarios';
 import storesRoutes from './routes/stores';
 import conteosRoutes from './routes/conteos';
@@ -14,6 +16,7 @@ import diferenciasCajaRoutes from './routes/diferencias-caja';
 import tiposConteoRoutes from './routes/tipos-conteo';
 import tiposDiferenciaRoutes from './routes/tipos-diferencia';
 import reportesDiariosRoutes from './routes/reportes-diarios';
+// import rolesRoutes from './routes/roles'; // Descomentar cuando se cree el archivo de rutas de roles
 
 // Cargar variables de entorno
 dotenv.config();
@@ -50,8 +53,8 @@ const ensureDbConnection = async (
   if (!isDbSynced) {
     try {
       await syncDatabase();
-      await seedRoles();
-      await fixSequences();
+      // await seedRoles(); // Descomentar cuando se implemente
+      // await fixSequences(); // Descomentar cuando se implemente
       isDbSynced = true;
       // Si la sincronización es exitosa, pasamos al siguiente middleware.
       return next();
@@ -72,6 +75,7 @@ apiRouter.get('/health', (_req, res) => {
 apiRouter.use('/gastos', gastosRoutes);
 apiRouter.use('/ventas-diarias', ventasDiariasRoutes);
 apiRouter.use('/bitacoras', bitacorasRoutes);
+// apiRouter.use('/auth', authRoutes); // Descomentar cuando se implemente
 apiRouter.use('/usuarios', usuariosRoutes);
 apiRouter.use('/stores', storesRoutes);
 apiRouter.use('/conteos', conteosRoutes);
@@ -79,8 +83,7 @@ apiRouter.use('/diferencias-caja', diferenciasCajaRoutes);
 apiRouter.use('/tipos-conteo', tiposConteoRoutes);
 apiRouter.use('/tipos-diferencia', tiposDiferenciaRoutes);
 apiRouter.use('/reportes-diarios', reportesDiariosRoutes);
-apiRouter.use('/auth', authRoutes);
-apiRouter.use('/roles', rolesRoutes);
+// apiRouter.use('/roles', rolesRoutes); // Descomentar cuando se implemente
 
 // Ya no usamos el prefijo '/api' aquí, porque vercel.json se encarga de eso.
 // Cualquier petición que llegue a esta función ya fue reescrita desde /api/...
