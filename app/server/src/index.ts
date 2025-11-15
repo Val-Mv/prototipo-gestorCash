@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+// Forzar la inclusión del driver de pg en el bundle de Vercel
+import 'pg';
 import { syncDatabase } from './models';
 import gastosRoutes from './routes/gastos';
 import ventasDiariasRoutes from './routes/ventas-diarias';
