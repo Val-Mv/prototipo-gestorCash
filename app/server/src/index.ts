@@ -23,6 +23,9 @@ dotenv.config();
 
 const app = express();
 
+// Definir el puerto para el entorno local
+const PORT = process.env.PORT || 8000;
+
 // Lista de orígenes permitidos
 const allowedOrigins = [
   'http://localhost:3000',
@@ -133,13 +136,26 @@ async function startServer() {
   try {
     // Sincronizar base de datos
     await syncDatabase();
+// Solo iniciar el servidor con app.listen en un entorno de desarrollo.
+// En Vercel, el archivo se importa como un módulo y no debe escuchar en un puerto.
+if (process.env.NODE_ENV !== 'production') {
+  // Inicializar servidor para desarrollo local
+  const startServer = async () => {
+    try {
+      // Sincronizar base de datos
+      await syncDatabase();
 
     // Verificar y corregir secuencias de auto-increment
     await fixSequences();
+      // Verificar y corregir secuencias de auto-increment
+      await fixSequences();
 
     // Poblar datos iniciales (roles)
     console.log('🌱 Verificando datos iniciales...');
     await seedRoles();
+      // Poblar datos iniciales (roles)
+      console.log('🌱 Verificando datos iniciales...');
+      await seedRoles();
 
     // Iniciar servidor
     app.listen(PORT, () => {
@@ -150,7 +166,20 @@ async function startServer() {
     console.error('❌ Error al iniciar el servidor:', error);
     process.exit(1);
   }
+      // Iniciar servidor
+      app.listen(PORT, () => {
+        console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+        console.log(`📚 Health check: http://localhost:${PORT}/api/health`);
+      });
+    } catch (error) {
+      console.error('❌ Error al iniciar el servidor:', error);
+      process.exit(1);
+    }
+  };
+
+  startServer();
 }
 
 startServer();
 
+export default app;
