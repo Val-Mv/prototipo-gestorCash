@@ -9,14 +9,21 @@
  
     {
       "src": "app/web/package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
     }
   ],
   "routes": [
-
     {
       "src": "/api/(.*)",
       "dest": "app/server/src/index.ts"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/app/web/dist/index.html"
     }
   ]
 }
