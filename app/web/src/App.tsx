@@ -13,6 +13,8 @@ import StoresPage from './pages/dashboard/admin/stores';
 import RootPage from './pages/root';
 
 function App() {
+
+  console.log('API_BASE_URL set to:', import.meta.env.VITE_API_URL )
   return (
     <BrowserRouter>
       <AuthProvider>
