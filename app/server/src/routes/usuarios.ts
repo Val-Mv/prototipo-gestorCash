@@ -20,21 +20,13 @@ router.post('/', async (req: Request, res: Response) => {
     const saltRounds = 10;
     const contrasenahash = await bcrypt.hash(validatedData.contrasena, saltRounds);
 
-    // Normalizar estadoActivo: convertir boolean a numeric (1/0)
-    let estadoActivo = validatedData.estadoActivo ?? true;
-    if (typeof estadoActivo === 'boolean') {
-      estadoActivo = estadoActivo ? 1 : 0;
-    } else if (typeof estadoActivo === 'string') {
-      estadoActivo = estadoActivo === 'true' || estadoActivo === '1' ? 1 : 0;
-    }
-
     const usuario = await Usuario.create({
       nombreCompleto: validatedData.nombreCompleto,
       email: validatedData.email,
       contrasenahash,
       telefono: validatedData.telefono || null,
       idRol: validatedData.idRol,
-      estadoActivo: estadoActivo as any, // El setter del modelo manejará la conversión
+      estadoActivo: validatedData.estadoActivo, // El setter del modelo se encarga de la conversión
     });
 
     // Retornar usuario sin la contraseña hash
@@ -59,8 +51,8 @@ router.get('/', async (req: Request, res: Response) => {
 
     const where: any = {};
     if (soloActivos === 'true') {
-      // Usar valor numeric directamente para la consulta
-      where.estadoactivo = 1;
+      // El campo en la BD ahora es camelCase
+      where.estadoActivo = 1;
     }
     if (idRol) {
       where.idRol = Number(idRol);
@@ -132,20 +124,10 @@ router.patch('/:id/estado', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Convertir boolean/number a numeric (1/0)
-    let estadoNumeric: number;
-    if (typeof estadoActivo === 'boolean') {
-      estadoNumeric = estadoActivo ? 1 : 0;
-    } else if (typeof estadoActivo === 'number') {
-      estadoNumeric = estadoActivo === 1 ? 1 : 0;
-    } else {
-      estadoNumeric = estadoActivo === 'true' || estadoActivo === '1' ? 1 : 0;
-    }
-
-    await usuario.update({ estadoActivo: estadoNumeric as any });
+    await usuario.update({ estadoActivo: estadoActivo });
 
     // Leer estado real de BD desde dataValues (nombre propiedad TypeScript: estadoActivo)
-    // Recargar el usuario para obtener el valor actualizado desde BD
+    // Recargar el usuario para obtener el valor actualizado desde la BD
     await usuario.reload();
     const estadoRealBD = Number((usuario as any).dataValues.estadoActivo);
 
@@ -186,13 +168,9 @@ router.put('/:idUsuario', async (req: Request, res: Response) => {
       delete (datosActualizados as any).contrasena;
     }
 
-    // Normalizar estadoActivo: convertir boolean a numeric si es necesario
+    // El setter del modelo se encargará de la conversión de estadoActivo si viene en el body
     if (datosActualizados.estadoActivo !== undefined) {
-      if (typeof datosActualizados.estadoActivo === 'boolean') {
-        datosActualizados.estadoActivo = datosActualizados.estadoActivo ? 1 : 0;
-      } else if (typeof datosActualizados.estadoActivo === 'string') {
-        datosActualizados.estadoActivo = datosActualizados.estadoActivo === 'true' ? 1 : 0;
-      }
+      (datosActualizados as any).estadoActivo = datosActualizados.estadoActivo;
     }
 
     await usuario.update(datosActualizados as any);
@@ -231,5 +209,3 @@ router.delete('/:idUsuario', async (req: Request, res: Response) => {
 });
 
 export default router;
-
-
