@@ -50,6 +50,8 @@ const ensureDbConnection = async (
   if (!isDbSynced) {
     try {
       await syncDatabase();
+      await seedRoles();
+      await fixSequences();
       isDbSynced = true;
       // Si la sincronización es exitosa, pasamos al siguiente middleware.
       return next();
@@ -77,6 +79,8 @@ apiRouter.use('/diferencias-caja', diferenciasCajaRoutes);
 apiRouter.use('/tipos-conteo', tiposConteoRoutes);
 apiRouter.use('/tipos-diferencia', tiposDiferenciaRoutes);
 apiRouter.use('/reportes-diarios', reportesDiariosRoutes);
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/roles', rolesRoutes);
 
 // Ya no usamos el prefijo '/api' aquí, porque vercel.json se encarga de eso.
 // Cualquier petición que llegue a esta función ya fue reescrita desde /api/...

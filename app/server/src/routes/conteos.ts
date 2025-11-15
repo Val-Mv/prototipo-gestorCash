@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Op } from 'sequelize';
+import { ZodError } from 'zod';
 import { Conteo } from '../models/Conteo';
 import { conteoCreateSchema } from '../schemas/conteo';
 
@@ -15,26 +16,37 @@ const parseFechaHora = (fecha?: string | Date) => {
   return parsed;
 };
 
+// Función centralizada para manejar errores de las rutas
+const handleRouteError = (error: any, res: Response) => {
+  if (error instanceof ZodError) {
+    return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+  }
+  if (error instanceof Error && (error.message.includes('inválida') || error.message.includes('no encontrado'))) {
+    const statusCode = error.message.includes('no encontrado') ? 404 : 400;
+    return res.status(statusCode).json({ error: error.message });
+  }
+  console.error('Error inesperado:', error);
+  return res.status(500).json({ error: 'Error interno del servidor' });
+};
+
 // Crear un conteo
 router.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = conteoCreateSchema.parse(req.body);
-    const { fechaHora, ...rest } = validatedData;
+    const { fechaHora, montoContado, montoEsperado, ...rest } = validatedData;
+    const diferencia = montoContado - montoEsperado;
 
     const conteo = await Conteo.create({
       ...rest,
+      montoContado,
+      montoEsperado,
+      diferencia,
       fechaHora: parseFechaHora(fechaHora),
     });
 
     return res.status(201).json(conteo);
   } catch (error: any) {
-    if (error.name === 'ZodError') {
-      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
-    } else if (error.message === 'Fecha u hora inválida') {
-      return res.status(400).json({ error: error.message });
-    } else {
-      return res.status(500).json({ error: error.message });
-    }
+    handleRouteError(error, res);
   }
 });
 
@@ -81,7 +93,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     return res.json(conteos);
   } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    handleRouteError(error, res);
   }
 });
 
@@ -90,13 +102,11 @@ router.get('/:idConteo', async (req: Request, res: Response) => {
   try {
     const conteo = await Conteo.findByPk(req.params.idConteo);
 
-    if (!conteo) {
-      return res.status(404).json({ error: 'Conteo no encontrado' });
-    }
+    if (!conteo) throw new Error('Conteo no encontrado');
 
     return res.json(conteo);
   } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    handleRouteError(error, res);
   }
 });
 
@@ -106,25 +116,22 @@ router.put('/:idConteo', async (req: Request, res: Response) => {
     const validatedData = conteoCreateSchema.parse(req.body);
     const conteo = await Conteo.findByPk(req.params.idConteo);
 
-    if (!conteo) {
-      return res.status(404).json({ error: 'Conteo no encontrado' });
-    }
+    if (!conteo) throw new Error('Conteo no encontrado');
 
-    const { fechaHora, ...rest } = validatedData;
+    const { fechaHora, montoContado, montoEsperado, ...rest } = validatedData;
+    const diferencia = montoContado - montoEsperado;
+
     await conteo.update({
       ...rest,
+      montoContado,
+      montoEsperado,
+      diferencia,
       fechaHora: parseFechaHora(fechaHora),
     });
 
     return res.json(conteo);
   } catch (error: any) {
-    if (error.name === 'ZodError') {
-      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
-    } else if (error.message === 'Fecha u hora inválida') {
-      return res.status(400).json({ error: error.message });
-    } else {
-      return res.status(500).json({ error: error.message });
-    }
+    handleRouteError(error, res);
   }
 });
 
@@ -133,17 +140,13 @@ router.delete('/:idConteo', async (req: Request, res: Response) => {
   try {
     const conteo = await Conteo.findByPk(req.params.idConteo);
 
-    if (!conteo) {
-      return res.status(404).json({ error: 'Conteo no encontrado' });
-    }
+    if (!conteo) throw new Error('Conteo no encontrado');
 
     await conteo.destroy();
     return res.json({ mensaje: 'Conteo eliminado correctamente' });
   } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    handleRouteError(error, res);
   }
 });
 
 export default router;
-
-

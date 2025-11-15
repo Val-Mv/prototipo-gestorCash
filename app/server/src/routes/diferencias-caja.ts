@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Op } from 'sequelize';
+import { ZodError } from 'zod';
 import { DiferenciaCaja } from '../models/DiferenciaCaja';
 import { diferenciaCajaCreateSchema } from '../schemas/diferencia-caja';
 
@@ -15,27 +16,38 @@ const parseFecha = (fecha?: string | Date) => {
   return parsed;
 };
 
+// Función centralizada para manejar errores de las rutas
+const handleRouteError = (error: any, res: Response) => {
+  if (error instanceof ZodError) {
+    return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
+  }
+  if (error instanceof Error && (error.message === 'Fecha inválida' || error.message.includes('no encontrada'))) {
+    const statusCode = error.message.includes('no encontrada') ? 404 : 400;
+    return res.status(statusCode).json({ error: error.message });
+  }
+  console.error('Error inesperado:', error);
+  return res.status(500).json({ error: 'Error interno del servidor' });
+};
+
 // Crear diferencia de caja
 router.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = diferenciaCajaCreateSchema.parse(req.body);
-    const { fecha, ...rest } = validatedData;
+    const { fecha, montoReal, montoEsperado, ...rest } = validatedData;
+    const diferenciaCalculada = montoReal - montoEsperado;
 
-    const diferencia = await DiferenciaCaja.create({
+    const nuevaDiferencia = await DiferenciaCaja.create({
       ...rest,
+      montoReal,
+      montoEsperado,
+      diferencia: diferenciaCalculada,
       fecha: parseFecha(fecha),
       resuelta: rest.resuelta ?? false,
     });
 
-    return res.status(201).json(diferencia);
+    return res.status(201).json(nuevaDiferencia);
   } catch (error: any) {
-    if (error.name === 'ZodError') {
-      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
-    } else if (error.message === 'Fecha inválida') {
-      return res.status(400).json({ error: error.message });
-    } else {
-      return res.status(500).json({ error: error.message });
-    }
+    handleRouteError(error, res);
   }
 });
 
@@ -84,7 +96,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     return res.json(diferencias);
   } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    handleRouteError(error, res);
   }
 });
 
@@ -93,13 +105,11 @@ router.get('/:idDiferencia', async (req: Request, res: Response) => {
   try {
     const diferencia = await DiferenciaCaja.findByPk(req.params.idDiferencia);
 
-    if (!diferencia) {
-      return res.status(404).json({ error: 'Diferencia de caja no encontrada' });
-    }
+    if (!diferencia) throw new Error('Diferencia de caja no encontrada');
 
     return res.json(diferencia);
   } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    handleRouteError(error, res);
   }
 });
 
@@ -109,26 +119,23 @@ router.put('/:idDiferencia', async (req: Request, res: Response) => {
     const validatedData = diferenciaCajaCreateSchema.parse(req.body);
     const diferencia = await DiferenciaCaja.findByPk(req.params.idDiferencia);
 
-    if (!diferencia) {
-      return res.status(404).json({ error: 'Diferencia de caja no encontrada' });
-    }
+    if (!diferencia) throw new Error('Diferencia de caja no encontrada');
 
-    const { fecha, ...rest } = validatedData;
+    const { fecha, montoReal, montoEsperado, ...rest } = validatedData;
+    const diferenciaCalculada = montoReal - montoEsperado;
+
     await diferencia.update({
       ...rest,
+      montoReal,
+      montoEsperado,
+      diferencia: diferenciaCalculada,
       fecha: parseFecha(fecha),
       resuelta: rest.resuelta ?? diferencia.resuelta,
     });
 
     return res.json(diferencia);
   } catch (error: any) {
-    if (error.name === 'ZodError') {
-      return res.status(400).json({ error: 'Datos inválidos', detalles: error.errors });
-    } else if (error.message === 'Fecha inválida') {
-      return res.status(400).json({ error: error.message });
-    } else {
-      return res.status(500).json({ error: error.message });
-    }
+    handleRouteError(error, res);
   }
 });
 
@@ -137,17 +144,13 @@ router.delete('/:idDiferencia', async (req: Request, res: Response) => {
   try {
     const diferencia = await DiferenciaCaja.findByPk(req.params.idDiferencia);
 
-    if (!diferencia) {
-      return res.status(404).json({ error: 'Diferencia de caja no encontrada' });
-    }
+    if (!diferencia) throw new Error('Diferencia de caja no encontrada');
 
     await diferencia.destroy();
     return res.json({ mensaje: 'Diferencia de caja eliminada correctamente' });
   } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    handleRouteError(error, res);
   }
 });
 
 export default router;
-
-
