@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import 'pg';
 import { syncDatabase } from './models';
 import { fixSequences } from './seeders/000_fix_sequences';
 import { seedRoles } from './seeders/001_create_roles';
