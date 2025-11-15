@@ -63,22 +63,10 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   });
 });
 
-// Inicializar servidor
-async function startServer() {
-  try {
-    // Sincronizar base de datos
-    await syncDatabase();
-    
-    // Iniciar servidor
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-      console.log(`📚 Health check: http://localhost:${PORT}/api/health`);
-    });
-  } catch (error) {
-    console.error('❌ Error al iniciar el servidor:', error);
-    process.exit(1);
-  }
-}
+// Sincronizar la base de datos al iniciar.
+// En un entorno serverless, esto puede ejecutarse en cada "cold start".
+syncDatabase().catch(err => console.error('❌ Error al sincronizar la base de datos:', err));
 
-startServer();
-
+// Exportar la app de Express para que Vercel la pueda usar.
+// Vercel se encarga de ejecutar el servidor.
+export default app;
