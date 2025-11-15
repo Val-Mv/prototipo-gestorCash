@@ -44,16 +44,16 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'healthy' });
 });
 
-app.use('/api/gastos', gastosRoutes);
-app.use('/api/ventas-diarias', ventasDiariasRoutes);
-app.use('/api/bitacoras', bitacorasRoutes);
-app.use('/api/usuarios', usuariosRoutes);
-app.use('/api/stores', storesRoutes);
-app.use('/api/conteos', conteosRoutes);
-app.use('/api/diferencias-caja', diferenciasCajaRoutes);
-app.use('/api/tipos-conteo', tiposConteoRoutes);
-app.use('/api/tipos-diferencia', tiposDiferenciaRoutes);
-app.use('/api/reportes-diarios', reportesDiariosRoutes);
+app.use('/gastos', gastosRoutes);
+app.use('/ventas-diarias', ventasDiariasRoutes);
+app.use('/bitacoras', bitacorasRoutes);
+app.use('/usuarios', usuariosRoutes);
+app.use('/stores', storesRoutes);
+app.use('/conteos', conteosRoutes);
+app.use('/diferencias-caja', diferenciasCajaRoutes);
+app.use('/tipos-conteo', tiposConteoRoutes);
+app.use('/tipos-diferencia', tiposDiferenciaRoutes);
+app.use('/reportes-diarios', reportesDiariosRoutes);
 
 // Manejo de errores
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
