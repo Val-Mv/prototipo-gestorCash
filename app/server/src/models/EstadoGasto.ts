@@ -22,22 +22,24 @@ EstadoGasto.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idestadogasto',
     },
     nombreEstado: {
       type: DataTypes.STRING(20),
       allowNull: false,
       unique: true,
+      field: 'nombreestado',
     },
   },
   {
     sequelize,
-    tableName: 'estados_gasto',
+    tableName: 'estado_gasto',
     timestamps: false,
     indexes: [
       {
         name: 'idx_estados_gasto_nombre',
         unique: true,
-        fields: ['nombreEstado'],
+        fields: ['nombreestado'],
       },
     ],
   }

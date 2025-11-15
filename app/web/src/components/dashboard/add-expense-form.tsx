@@ -30,120 +30,173 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/hooks/use-auth';
-import type { Expense } from '@/lib/types';
+import type { Gasto } from '@/lib/types';
+import { crearGasto, type CrearGastoPayload } from '@/lib/api/expenses';
 
-const expenseSchema = z.object({
-  category: z.enum(['store_supplies', 'maintenance', 'paperwork', 'transport'], {
+const categorias = [
+  { clave: 'suministros', etiqueta: 'Suministros de Tienda', id: 1 },
+  { clave: 'mantenimiento', etiqueta: 'Mantenimiento', id: 2 },
+  { clave: 'papeleria', etiqueta: 'Papelería', id: 3 },
+  { clave: 'transporte', etiqueta: 'Transporte', id: 4 },
+] as const;
+
+type CategoriaClave = (typeof categorias)[number]['clave'];
+
+const categoriaPorClave = categorias.reduce<Record<CategoriaClave, { etiqueta: string; id: number }>>(
+  (acc, cat) => {
+    acc[cat.clave] = { etiqueta: cat.etiqueta, id: cat.id };
+    return acc;
+  },
+  {} as Record<CategoriaClave, { etiqueta: string; id: number }>
+);
+
+const ESTADO_GASTO_REGISTRADO = 1;
+
+const gastoSchema = z.object({
+  categoriaClave: z.enum(categorias.map((c) => c.clave) as [CategoriaClave, ...CategoriaClave[]], {
     required_error: 'Debe seleccionar una categoría',
   }),
-  item: z.string().min(1, 'El ítem es obligatorio').min(3, 'El ítem debe tener al menos 3 caracteres'),
-  amount: z.coerce.number().min(0.01, 'El monto debe ser mayor a 0'),
-  description: z.string().min(1, 'La descripción es obligatoria').min(10, 'La descripción debe tener al menos 10 caracteres'),
-  attachmentUrl: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
+  monto: z.coerce.number().min(0.01, 'El monto debe ser mayor a 0'),
+  descripcion: z
+    .string()
+    .min(10, 'La descripción debe tener al menos 10 caracteres')
+    .max(500, 'La descripción no puede exceder 500 caracteres'),
+  numeroComprobante: z
+    .string()
+    .min(3, 'El número de comprobante es obligatorio')
+    .max(200, 'El número de comprobante no puede exceder 200 caracteres'),
+  rutaComprobante: z
+    .string()
+    .url('Debe ser una URL válida')
+    .optional()
+    .or(z.literal('')),
+  fecha: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || !Number.isNaN(new Date(val).getTime()),
+      'Debe ser una fecha válida'
+    ),
 });
 
-type ExpenseFormData = z.infer<typeof expenseSchema>;
+type GastoFormData = z.infer<typeof gastoSchema>;
 
 interface AddExpenseFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onExpenseAdded?: (expense: Expense) => void;
+  onGastoAgregado?: (gasto: Gasto) => void;
 }
 
-const categoryLabels: Record<string, string> = {
-  'store_supplies': 'Suministros de Tienda',
-  'maintenance': 'Mantenimiento',
-  'paperwork': 'Papelería',
-  'transport': 'Transporte',
-};
-
-export function AddExpenseForm({ open, onOpenChange, onExpenseAdded }: AddExpenseFormProps) {
+export function AddExpenseForm({ open, onOpenChange, onGastoAgregado }: AddExpenseFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const form = useForm<ExpenseFormData>({
-    resolver: zodResolver(expenseSchema),
+  const form = useForm<GastoFormData>({
+    resolver: zodResolver(gastoSchema),
     defaultValues: {
-      category: undefined,
-      item: '',
-      amount: 0,
-      description: '',
-      attachmentUrl: '',
+      monto: 0,
+      descripcion: '',
+      numeroComprobante: '',
+      rutaComprobante: '',
+      fecha: new Date().toISOString().split('T')[0],
     },
   });
 
-  function onSubmit(values: ExpenseFormData) {
-    // Validar que el usuario tenga permisos (SM o ASM)
+  const estadoFormulario = form.formState;
+
+  async function onSubmit(values: GastoFormData) {
     if (!user || (user.role !== 'SM' && user.role !== 'ASM')) {
       toast({
         variant: 'destructive',
-        title: 'Acceso Denegado',
+        title: 'Acceso denegado',
         description: 'Solo los gerentes de tienda y asistentes pueden registrar gastos.',
       });
       return;
     }
 
-    // Crear el objeto de gasto con asociación a día y caja
-    const newExpense: Expense = {
-      id: `exp-${Date.now()}`,
-      category: values.category,
-      item: values.item,
-      amount: values.amount,
-      description: values.description,
-      attachmentUrl: values.attachmentUrl || undefined,
-      createdAt: new Date().getTime(),
-      storeId: user?.storeId || 'berwyn-il', // Asociar a la tienda del usuario
-      date: new Date().toISOString().split('T')[0], // Asociar al día actual
-      userId: user?.uid, // Usuario que registró el gasto
-    };
-
-    // Llamar al callback si existe
-    if (onExpenseAdded) {
-      onExpenseAdded(newExpense);
+    if (!user.idUsuario) {
+      toast({
+        variant: 'destructive',
+        title: 'Usuario sin identificador',
+        description: 'No se encontró el identificador del usuario para registrar el gasto.',
+      });
+      return;
     }
 
-    // Mostrar mensaje de éxito
-    toast({
-      title: 'Gasto Registrado',
-      description: `Se ha registrado el gasto de ${values.item} por $${values.amount.toFixed(2)}.`,
-    });
+    const idCategoria = categoriaPorClave[values.categoriaClave].id;
 
-    // Resetear el formulario y cerrar el diálogo
-    form.reset();
-    onOpenChange(false);
+    const payload: CrearGastoPayload = {
+      fecha: values.fecha ? new Date(values.fecha).toISOString() : undefined,
+      monto: values.monto,
+      descripcion: values.descripcion.trim(),
+      numeroComprobante: values.numeroComprobante.trim(),
+      rutaComprobante: values.rutaComprobante?.trim() || 'SIN_COMPROBANTE',
+      idCaja: null,
+      idUsuarioRegistro: user.idUsuario,
+      idUsuarioAprobacion: null,
+      idCajaOrigen: null,
+      idCategoria,
+      idEstadoGasto: ESTADO_GASTO_REGISTRADO,
+    };
 
-    // TODO: Guardar en base de datos
-    console.log('New expense:', newExpense);
+    try {
+      const nuevoGasto = await crearGasto(payload);
+
+      toast({
+        title: 'Gasto registrado',
+        description: `Se registró el gasto ${values.numeroComprobante} por $${values.monto.toFixed(2)} en ${categoriaPorClave[values.categoriaClave].etiqueta}.`,
+      });
+
+      if (onGastoAgregado) {
+        onGastoAgregado(nuevoGasto);
+      }
+
+      form.reset({
+        monto: 0,
+        descripcion: '',
+        numeroComprobante: '',
+        rutaComprobante: '',
+        fecha: new Date().toISOString().split('T')[0],
+      });
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error al registrar el gasto',
+        description: error?.message || 'No fue posible registrar el gasto. Intenta nuevamente.',
+      });
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Agregar Nuevo Gasto</DialogTitle>
+          <DialogTitle className="font-headline">Registrar nuevo gasto</DialogTitle>
           <DialogDescription>
-            Registra un gasto operativo. Solo los gerentes de tienda y asistentes pueden registrar gastos.
+            Completa la información del gasto operativo. Solo los gerentes de tienda y asistentes pueden registrar gastos.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="category"
+              name="categoriaClave"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoría</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una categoría" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="store_supplies">Suministros de Tienda</SelectItem>
-                      <SelectItem value="maintenance">Mantenimiento</SelectItem>
-                      <SelectItem value="paperwork">Papelería</SelectItem>
-                      <SelectItem value="transport">Transporte</SelectItem>
+                      {categorias.map((categoria) => (
+                        <SelectItem key={categoria.clave} value={categoria.clave}>
+                          {categoria.etiqueta}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -152,23 +205,7 @@ export function AddExpenseForm({ open, onOpenChange, onExpenseAdded }: AddExpens
             />
             <FormField
               control={form.control}
-              name="item"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ítem</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Spray Limpiador" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Nombre del artículo o servicio
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="amount"
+              name="monto"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Monto (USD)</FormLabel>
@@ -181,7 +218,7 @@ export function AddExpenseForm({ open, onOpenChange, onExpenseAdded }: AddExpens
             />
             <FormField
               control={form.control}
-              name="description"
+              name="descripcion"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Descripción</FormLabel>
@@ -192,19 +229,31 @@ export function AddExpenseForm({ open, onOpenChange, onExpenseAdded }: AddExpens
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Proporciona detalles sobre el gasto (al menos 10 caracteres)
-                  </FormDescription>
+                  <FormDescription>Detalle el motivo del gasto (mínimo 10 caracteres)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="attachmentUrl"
+              name="numeroComprobante"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Soporte (URL de Imagen) - Opcional</FormLabel>
+                  <FormLabel>Número de comprobante</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ej: COMP-001" {...field} />
+                  </FormControl>
+                  <FormDescription>Identificador del comprobante o referencia interna</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="rutaComprobante"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Comprobante (URL) - Opcional</FormLabel>
                   <FormControl>
                     <Input
                       type="url"
@@ -213,8 +262,21 @@ export function AddExpenseForm({ open, onOpenChange, onExpenseAdded }: AddExpens
                     />
                   </FormControl>
                   <FormDescription>
-                    URL de la imagen del recibo o comprobante
+                    URL de la imagen del recibo o comprobante. Si no hay, se registrará como SIN_COMPROBANTE.
                   </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="fecha"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fecha del gasto</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -230,7 +292,9 @@ export function AddExpenseForm({ open, onOpenChange, onExpenseAdded }: AddExpens
               >
                 Cancelar
               </Button>
-              <Button type="submit">Guardar Gasto</Button>
+              <Button type="submit" disabled={estadoFormulario.isSubmitting}>
+                {estadoFormulario.isSubmitting ? 'Guardando...' : 'Guardar gasto'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

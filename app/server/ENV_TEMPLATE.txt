@@ -1,0 +1,92 @@
+# ============================================
+# Configuración del Servidor
+# ============================================
+PORT=8000
+NODE_ENV=development
+
+# ============================================
+# Configuración de Base de Datos
+# ============================================
+
+# Perfil de base de datos activo: 'local' o 'supabase'
+ACTIVE_DB=local
+
+# ============================================
+# Base de Datos Local (PostgreSQL en Docker)
+# ============================================
+# NOTA: Cuando usas Docker Compose, el host debe ser 'db' (nombre del servicio)
+# Si ejecutas el backend fuera de Docker, usa 'localhost'
+# Formato: postgresql://usuario:password@host:puerto/nombre_db
+LOCAL_DATABASE_URL=postgresql://admin:admin@db:5432/gestorcash
+
+# O usar variables individuales (recomendado para Docker)
+DB_HOST=db
+DB_PORT=5432
+DB_USERNAME=admin
+DB_PASSWORD=admin
+DB_NAME=gestorcash
+
+# O usar DATABASE_URL (alternativa)
+# DATABASE_URL=postgresql://admin:admin@db:5432/gestorcash
+
+# ============================================
+# Base de Datos Supabase (Remota)
+# ============================================
+# Opción 1: Usar URL completa (recomendado)
+# Formato: postgresql://usuario:password@host:puerto/nombre_db
+# Para Supabase, usa el connection string del pooler
+SUPABASE_DATABASE_URL=postgresql://postgres.wlnbzzisnikxuvhymfqv:amazon1234556@aws-1-us-east-2.pooler.supabase.com:5432/postgres
+
+# Opción 2: Usar variables individuales (alternativa)
+# Si no defines SUPABASE_DATABASE_URL, el sistema construirá la URL desde estas variables:
+DB_HOST=aws-1-us-east-2.pooler.supabase.com
+DB_PORT=5432
+DB_USERNAME=postgres.wlnbzzisnikxuvhymfqv
+DB_PASSWORD=amazon1234556
+DB_NAME=postgres
+DB_SSL=true
+
+# ============================================
+# Configuración SSL
+# ============================================
+# Para Supabase siempre debe ser 'true'
+# Para local puede ser 'false'
+USE_SSL=false
+
+# ============================================
+# Sincronización de Base de Datos (Sequelize)
+# ============================================
+# IMPORTANTE: En producción, estas opciones deben estar en 'false'
+# Solo habilitar en desarrollo cuando necesites crear/modificar tablas
+
+# Sincronizar modelos (crear tablas si no existen)
+SHOULD_SYNC_DB=false
+
+# Sincronizar con ALTER (modificar tablas existentes)
+SHOULD_SYNC_DB_ALTER=false
+
+# Sincronizar con FORCE (eliminar y recrear tablas - ¡CUIDADO! Perderás datos)
+SHOULD_SYNC_DB_FORCE=false
+
+# ============================================
+# Datos Iniciales (Seed)
+# ============================================
+# Crear datos por defecto al iniciar (tienda, roles, etc.)
+SEED_DEFAULT_DATA=true
+DEFAULT_STORE_ID=berwyn-il
+DEFAULT_STORE_NAME=Dollar Tree Berwyn
+DEFAULT_STORE_CODE=DT-BYW
+
+# ============================================
+# Configuración Avanzada (Opcional)
+# ============================================
+# Reescribir host 'db' a localhost en desarrollo (solo si ejecutas fuera de Docker)
+# REWRITE_DB_HOST_LOCALHOST=false
+# DB_HOST_OVERRIDE=127.0.0.1
+
+# Pool de conexiones
+DB_POOL_MAX=10
+DB_POOL_MIN=0
+DB_POOL_ACQUIRE=30000
+DB_POOL_IDLE=10000
+

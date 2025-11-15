@@ -22,22 +22,24 @@ TipoDiferencia.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idtipodiferencia',
     },
     nombreTipo: {
       type: DataTypes.STRING(20),
       allowNull: false,
       unique: true,
+      field: 'nombretipo',
     },
   },
   {
     sequelize,
-    tableName: 'tipos_diferencia',
+    tableName: 'tipo_diferencia',
     timestamps: false,
     indexes: [
       {
         name: 'idx_tipos_diferencia_nombre',
         unique: true,
-        fields: ['nombreTipo'],
+        fields: ['nombretipo'],
       },
     ],
   }

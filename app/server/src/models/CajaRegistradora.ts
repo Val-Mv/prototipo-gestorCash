@@ -31,40 +31,54 @@ CajaRegistradora.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idcaja',
     },
     numeroCaja: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(20),
       allowNull: false,
       unique: true,
+      field: 'numerocaja',
     },
     montoInicialRequerido: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
+      defaultValue: 75.00,
+      field: 'montoinicialrequerido',
     },
     ubicacion: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(100),
       allowNull: true,
+      field: 'ubicacion',
     },
     estadoActiva: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER,
+      field: 'estadoactiva',
       allowNull: false,
-      defaultValue: true,
+      defaultValue: 1,
+      get() {
+        const raw = this.getDataValue('estadoActiva') as unknown as number;
+        return raw === 1;
+      },
+      set(value: boolean) {
+        this.setDataValue('estadoActiva', value ? 1 : 0 as any);
+      },
     },
     fechaRegistro: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fecharegistro',
     },
   },
   {
     sequelize,
-    tableName: 'cajas_registradoras',
+    tableName: 'caja_registradora',
     timestamps: false,
     indexes: [
       {
         name: 'idx_cajas_numero',
         unique: true,
-        fields: ['numeroCaja'],
+        fields: ['numerocaja'],
       },
     ],
   }

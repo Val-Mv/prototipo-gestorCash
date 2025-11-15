@@ -6,7 +6,7 @@ export interface BitacoraAuditoriaAttributes {
   fechaHora: Date;
   accion: string;
   tablaModificada: string;
-  registroAfectado: string;
+  registroAfectado: string | null;
   descripcion?: string | null;
   valoresAnteriores?: string | null;
   valoresNuevos?: string | null;
@@ -18,17 +18,16 @@ export interface BitacoraAuditoriaCreationAttributes
   extends Optional<
     BitacoraAuditoriaAttributes,
     'idBitacora' | 'fechaHora' | 'descripcion' | 'valoresAnteriores' | 'valoresNuevos' | 'direccionIP'
-  > {}
+  > { }
 
 export class BitacoraAuditoria
   extends Model<BitacoraAuditoriaAttributes, BitacoraAuditoriaCreationAttributes>
-  implements BitacoraAuditoriaAttributes
-{
+  implements BitacoraAuditoriaAttributes {
   public idBitacora!: number;
   public fechaHora!: Date;
   public accion!: string;
   public tablaModificada!: string;
-  public registroAfectado!: string;
+  public registroAfectado!: string | null;
   public descripcion?: string | null;
   public valoresAnteriores?: string | null;
   public valoresNuevos?: string | null;
@@ -42,57 +41,67 @@ BitacoraAuditoria.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idbitacora',
     },
     fechaHora: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fechahora',
     },
     accion: {
-      type: DataTypes.STRING(200),
+      type: DataTypes.STRING(100),
       allowNull: false,
+      field: 'accion',
     },
     tablaModificada: {
-      type: DataTypes.STRING(200),
+      type: DataTypes.STRING(100),
       allowNull: false,
+      field: 'moduloAfectado',
     },
     registroAfectado: {
-      type: DataTypes.STRING(200),
-      allowNull: false,
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'registroId',
     },
     descripcion: {
-      type: DataTypes.STRING(1000),
+      type: DataTypes.STRING(500),
       allowNull: true,
+      field: 'descripcion',
     },
     valoresAnteriores: {
       type: DataTypes.TEXT,
       allowNull: true,
+      field: 'valoresanteriores',
     },
     valoresNuevos: {
       type: DataTypes.TEXT,
       allowNull: true,
+      field: 'valoresnuevos',
     },
     direccionIP: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(50),
       allowNull: true,
+      field: 'direccionip',
     },
     idUsuario: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idusuario',
     },
   },
   {
     sequelize,
-    tableName: 'bitacoras_auditoria',
+    tableName: 'bitacora_auditoria',
     timestamps: false,
     indexes: [
       {
         name: 'idx_bitacoras_fecha',
-        fields: ['fechaHora'],
+        fields: ['fechahora'],
       },
       {
         name: 'idx_bitacoras_usuario',
-        fields: ['idUsuario'],
+        fields: ['idusuario'],
       },
     ],
   }

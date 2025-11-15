@@ -1,4 +1,4 @@
-import type { DailyReport, Expense, Store, AppUser, CashRegister } from './types';
+import type { DailyReport, Gasto, Store, AppUser, CashRegister } from './types';
 
 export const mockUsers: Record<string, AppUser> = {
   'dm@company.com': {
@@ -6,6 +6,7 @@ export const mockUsers: Record<string, AppUser> = {
     email: 'dm@company.com',
     displayName: 'Eleanor Vance',
     role: 'DM',
+    idUsuario: 1,
   },
   'sm.berwyn@company.com': {
     uid: 'sm-456',
@@ -13,6 +14,7 @@ export const mockUsers: Record<string, AppUser> = {
     displayName: 'Marcus Holloway',
     role: 'SM',
     storeId: 'berwyn-il',
+    idUsuario: 2,
   },
   'asm.berwyn@company.com': {
     uid: 'asm-789',
@@ -20,6 +22,7 @@ export const mockUsers: Record<string, AppUser> = {
     displayName: 'Anya Sharma',
     role: 'ASM',
     storeId: 'berwyn-il',
+    idUsuario: 3,
   },
 };
 
@@ -35,11 +38,63 @@ export const mockRegisters: CashRegister[] = [
   { id: 'reg-4', storeId: 'berwyn-il', number: 4, active: true },
 ];
 
-export const mockExpenses: Expense[] = [
-  { id: 'exp-1', category: 'store_supplies', item: 'Spray Limpiador', amount: 12.50, description: 'Reabastecimiento semanal de suministros de limpieza', createdAt: new Date().getTime() - 86400000 * 1, attachmentUrl: 'https://picsum.photos/seed/receipt1/400/600', storeId: 'berwyn-il', date: new Date(Date.now() - 86400000 * 1).toISOString().split('T')[0] },
-  { id: 'exp-2', category: 'maintenance', item: 'Cambio de Bombilla', amount: 25.00, description: 'Reemplazo de bombilla parpadeante en pasillo 3', createdAt: new Date().getTime() - 86400000 * 2, storeId: 'berwyn-il', date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0] },
-  { id: 'exp-3', category: 'paperwork', item: 'Papel para Impresora', amount: 45.75, description: 'Caja de papel A4 para oficina', createdAt: new Date().getTime() - 86400000 * 3, attachmentUrl: 'https://picsum.photos/seed/receipt2/400/600', storeId: 'berwyn-il', date: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0] },
-  { id: 'exp-4', category: 'store_supplies', item: 'Rollos de Cinta de Registro', amount: 22.30, description: 'Pedido al por mayor de papel de recibos', createdAt: new Date().getTime() - 86400000 * 4, storeId: 'berwyn-il', date: new Date(Date.now() - 86400000 * 4).toISOString().split('T')[0] },
+export const mockGastos: Gasto[] = [
+  {
+    idGasto: 1,
+    fecha: new Date(Date.now() - 86400000 * 1).toISOString(),
+    monto: 12.5,
+    descripcion: 'Reabastecimiento semanal de suministros de limpieza',
+    numeroComprobante: 'COMP-001',
+    rutaComprobante: 'https://picsum.photos/seed/receipt1/400/600',
+    idCaja: null,
+    idUsuarioRegistro: 2,
+    idUsuarioAprobacion: null,
+    idCajaOrigen: null,
+    idCategoria: 1,
+    idEstadoGasto: 1,
+  },
+  {
+    idGasto: 2,
+    fecha: new Date(Date.now() - 86400000 * 2).toISOString(),
+    monto: 25.0,
+    descripcion: 'Reemplazo de bombilla parpadeante en pasillo 3',
+    numeroComprobante: 'COMP-002',
+    rutaComprobante: null,
+    idCaja: null,
+    idUsuarioRegistro: 2,
+    idUsuarioAprobacion: null,
+    idCajaOrigen: null,
+    idCategoria: 2,
+    idEstadoGasto: 1,
+  },
+  {
+    idGasto: 3,
+    fecha: new Date(Date.now() - 86400000 * 3).toISOString(),
+    monto: 45.75,
+    descripcion: 'Caja de papel A4 para oficina',
+    numeroComprobante: 'COMP-003',
+    rutaComprobante: 'https://picsum.photos/seed/receipt2/400/600',
+    idCaja: null,
+    idUsuarioRegistro: 3,
+    idUsuarioAprobacion: null,
+    idCajaOrigen: null,
+    idCategoria: 3,
+    idEstadoGasto: 1,
+  },
+  {
+    idGasto: 4,
+    fecha: new Date(Date.now() - 86400000 * 4).toISOString(),
+    monto: 22.3,
+    descripcion: 'Pedido al por mayor de papel de recibos',
+    numeroComprobante: 'COMP-004',
+    rutaComprobante: null,
+    idCaja: null,
+    idUsuarioRegistro: 2,
+    idUsuarioAprobacion: null,
+    idCajaOrigen: null,
+    idCategoria: 1,
+    idEstadoGasto: 1,
+  },
 ];
 
 export const mockDailyReports: DailyReport[] = Array.from({ length: 7 }).map((_, i) => {

@@ -21,22 +21,24 @@ TipoConteo.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idtipoconteo',
     },
     nombreTipo: {
       type: DataTypes.STRING(20),
       allowNull: false,
       unique: true,
+      field: 'nombretipo',
     },
   },
   {
     sequelize,
-    tableName: 'tipos_conteo',
+    tableName: 'tipo_conteo',
     timestamps: false,
     indexes: [
       {
         name: 'idx_tipos_conteo_nombre',
         unique: true,
-        fields: ['nombreTipo'],
+        fields: ['nombretipo'],
       },
     ],
   }

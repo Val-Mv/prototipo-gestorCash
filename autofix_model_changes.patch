@@ -1,0 +1,1235 @@
+# Parche de Correcciones Automáticas para Modelos
+# Este parche contiene todos los cambios necesarios para alinear los modelos Sequelize con el esquema de base de datos
+
+# ============================================================================
+# 1. Modelo Usuario - Corregir nombre de tabla y mapeos de campos
+# ============================================================================
+# Archivo: app/server/src/models/Usuario.ts
+
+--- a/app/server/src/models/Usuario.ts
++++ b/app/server/src/models/Usuario.ts
+@@ -11,7 +11,7 @@ export interface UsuarioAttributes {
+   telefono?: string | null;
+   fechaCreacion?: Date;
+-  estadoActivo: number;  // La BD usa numeric(1,0): 0 = false, 1 = true
++  estadoActivo: boolean;
+   idRol: number;
+ }
+ 
+@@ -24,7 +24,7 @@ export class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes
+   public email!: string;
+   public contrasenaHash!: string;
+   public telefono?: string | null;
+   public fechaCreacion?: Date;
+-  public estadoActivo!: number;  // 0 = false, 1 = true
++  public estadoActivo!: boolean;
+   public idRol!: number;
+ }
+ 
+@@ -32,7 +32,7 @@ Usuario.init(
+   {
+     idUsuario: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idusuario',
++      field: 'idUsuario',
+     },
+     nombreCompleto: {
+       type: DataTypes.STRING(150),
+       allowNull: false,
+-      field: 'nombrecompleto',
++      field: 'nombreCompleto',
+     },
+     email: {
+       type: DataTypes.STRING(150),
+       allowNull: false,
+       unique: true,
+       field: 'email',
+     },
+     contrasenaHash: {
+       type: DataTypes.STRING(255),
+       allowNull: false,
+-      field: 'contrasenahash',
++      field: 'contrasenaHash',
+     },
+     telefono: {
+       type: DataTypes.STRING(30),
+       allowNull: true,
+       field: 'telefono',
+     },
+     fechaCreacion: {
+       type: DataTypes.DATE,
+       allowNull: false,
+       defaultValue: DataTypes.NOW,
+-      field: 'fechacreacion',
++      field: 'fechaCreacion',
+     },
+     estadoActivo: {
+-      type: DataTypes.INTEGER,  // La BD usa numeric(1,0), no boolean
++      type: DataTypes.BOOLEAN,
+       allowNull: false,
+-      defaultValue: 1,
+-      field: 'estadoactivo',
++      defaultValue: true,
++      field: 'estadoActivo',
+     },
+     idRol: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idrol',
++      field: 'idRol',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'usuario',
++    tableName: 'usuarios',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_usuarios_email',
+         unique: true,
+         fields: ['email'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 2. Modelo Rol - Corregir nombre de tabla y mapeos de campos
+# ============================================================================
+# Archivo: app/server/src/models/Rol.ts
+
+--- a/app/server/src/models/Rol.ts
++++ b/app/server/src/models/Rol.ts
+@@ -20,7 +20,7 @@ Rol.init(
+     idRol: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idrol',
++      field: 'idRol',
+     },
+     nombreRol: {
+       type: DataTypes.STRING(50),
+       allowNull: false,
+       unique: true,
+-      field: 'nombrerol',
++      field: 'nombreRol',
+     },
+     descripcion: {
+       type: DataTypes.STRING(200),
+       allowNull: true,
+       field: 'descripcion',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'rol',
++    tableName: 'roles',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_roles_nombre',
+         unique: true,
+-        fields: ['nombrerol'],
++        fields: ['nombreRol'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 3. Modelo CajaRegistradora - Corregir nombre de tabla, mapeos de campos y tipos de datos
+# ============================================================================
+# Archivo: app/server/src/models/CajaRegistradora.ts
+
+--- a/app/server/src/models/CajaRegistradora.ts
++++ b/app/server/src/models/CajaRegistradora.ts
+@@ -8,7 +8,7 @@ export interface CajaRegistradoraAttributes {
+   montoInicialRequerido: number;
+   ubicacion?: string | null;
+-  estadoActiva: number;  // La BD usa numeric(1,0): 0 = false, 1 = true
++  estadoActiva: boolean;
+   fechaRegistro?: Date;
+ }
+ 
+@@ -20,7 +20,7 @@ export class CajaRegistradora
+   public numeroCaja!: string;
+   public montoInicialRequerido!: number;
+   public ubicacion?: string | null;
+-  public estadoActiva!: number;  // 0 = false, 1 = true
++  public estadoActiva!: boolean;
+   public fechaRegistro?: Date;
+ }
+ 
+@@ -30,7 +30,7 @@ CajaRegistradora.init(
+     idCaja: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idcaja',
++      field: 'idCaja',
+     },
+     numeroCaja: {
+       type: DataTypes.STRING(50),
+       allowNull: false,
+       unique: true,
+-      field: 'numerocaja',
++      field: 'numeroCaja',
+     },
+     montoInicialRequerido: {
+       type: DataTypes.DECIMAL(14, 2),
+       allowNull: false,
+-      field: 'montoinicialrequerido',
++      field: 'montoInicialRequerido',
+     },
+     ubicacion: {
+       type: DataTypes.STRING(150),
+       allowNull: true,
+       field: 'ubicacion',
+     },
+     estadoActiva: {
+-      type: DataTypes.INTEGER,  // La BD usa numeric(1,0), no boolean
++      type: DataTypes.BOOLEAN,
+       allowNull: false,
+-      defaultValue: 1,
+-      field: 'estadoactiva',
++      defaultValue: true,
++      field: 'estadoActiva',
+     },
+     fechaRegistro: {
+       type: DataTypes.DATE,
+       allowNull: false,
+       defaultValue: DataTypes.NOW,
+-      field: 'fecharegistro',
++      field: 'fechaRegistro',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'caja_registradora',
++    tableName: 'cajas_registradoras',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_cajas_numero',
+         unique: true,
+-        fields: ['numerocaja'],
++        fields: ['numeroCaja'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 4. Modelo CategoriaGasto - Corregir nombre de tabla y mapeos de campos
+# ============================================================================
+# Archivo: app/server/src/models/CategoriaGasto.ts
+
+--- a/app/server/src/models/CategoriaGasto.ts
++++ b/app/server/src/models/CategoriaGasto.ts
+@@ -30,7 +30,7 @@ CategoriaGasto.init(
+     idCategoria: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
++      field: 'idCategoria',
+     },
+     nombre: {
+       type: DataTypes.STRING(150),
+       allowNull: false,
+       unique: true,
+     },
+     descripcion: {
+       type: DataTypes.STRING(400),
+       allowNull: true,
+     },
+     presupuestoMensual: {
+       type: DataTypes.DECIMAL(14, 2),
+       allowNull: true,
++      field: 'presupuestoMensual',
+     },
+     activa: {
+       type: DataTypes.BOOLEAN,
+       allowNull: false,
+       defaultValue: true,
+     },
+     idUsuarioCreacion: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
++      field: 'idUsuarioCreacion',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'categoria_gasto',
++    tableName: 'categorias_gasto',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_categorias_nombre',
+         unique: true,
+         fields: ['nombre'],
+       },
+       {
+         name: 'idx_categorias_usuario',
+-        fields: ['idUsuarioCreacion'],  // La tabla usa camelCase
++        fields: ['idUsuarioCreacion'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 5. Modelo Gasto - Corregir nombre de tabla y mapeos de campos
+# ============================================================================
+# Archivo: app/server/src/models/Gasto.ts
+
+--- a/app/server/src/models/Gasto.ts
++++ b/app/server/src/models/Gasto.ts
+@@ -42,7 +42,7 @@ Gasto.init(
+     idGasto: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idgasto',
++      field: 'idGasto',
+     },
+     fecha: {
+       type: DataTypes.DATE,
+       allowNull: false,
+       defaultValue: DataTypes.NOW,
+       field: 'fecha',
+     },
+     monto: {
+       type: DataTypes.DECIMAL(14, 2),
+       allowNull: false,
+       field: 'monto',
+     },
+     descripcion: {
+       type: DataTypes.STRING(500),
+       allowNull: false,
+       field: 'descripcion',
+     },
+     numeroComprobante: {
+       type: DataTypes.STRING(200),
+       allowNull: false,
+-      field: 'numerocomprobante',
++      field: 'numeroComprobante',
+     },
+     rutaComprobante: {
+       type: DataTypes.STRING(400),
+       allowNull: false,
+-      field: 'rutacomprobante',
++      field: 'rutaComprobante',
+     },
+     idCaja: {
+       type: DataTypes.INTEGER,
+       allowNull: true,
+-      field: 'idcaja',
++      field: 'idCaja',
+     },
+     idUsuarioRegistro: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idusuarioregistro',
++      field: 'idUsuarioRegistro',
+     },
+     idUsuarioAprobacion: {
+       type: DataTypes.INTEGER,
+       allowNull: true,
+-      field: 'idusuarioaprobacion',
++      field: 'idUsuarioAprobacion',
+     },
+     idCajaOrigen: {
+       type: DataTypes.INTEGER,
+       allowNull: true,
+-      field: 'idcajaorigen',
++      field: 'idCajaOrigen',
+     },
+     idCategoria: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idcategoria',
++      field: 'idCategoria',
+     },
+     idEstadoGasto: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idestadogasto',
++      field: 'idEstadoGasto',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'gasto',
++    tableName: 'gastos',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_gastos_fecha',
+         fields: ['fecha'],
+       },
+       {
+         name: 'idx_gastos_estado',
+-        fields: ['idestadogasto'],
++        fields: ['idEstadoGasto'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 6. Modelo EstadoGasto - Corregir nombre de tabla y mapeos de campos
+# ============================================================================
+# Archivo: app/server/src/models/EstadoGasto.ts
+
+--- a/app/server/src/models/EstadoGasto.ts
++++ b/app/server/src/models/EstadoGasto.ts
+@@ -20,7 +20,7 @@ EstadoGasto.init(
+     idEstadoGasto: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idestadogasto',
++      field: 'idEstadoGasto',
+     },
+     nombreEstado: {
+       type: DataTypes.STRING(20),
+       allowNull: false,
+       unique: true,
+-      field: 'nombreestado',
++      field: 'nombreEstado',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'estado_gasto',
++    tableName: 'estados_gasto',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_estados_gasto_nombre',
+         unique: true,
+-        fields: ['nombreestado'],
++        fields: ['nombreEstado'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 7. Modelo CajaFuerte - Corregir nombre de tabla y mapeos de campos
+# ============================================================================
+# Archivo: app/server/src/models/CajaFuerte.ts
+
+--- a/app/server/src/models/CajaFuerte.ts
++++ b/app/server/src/models/CajaFuerte.ts
+@@ -30,7 +30,7 @@ CajaFuerte.init(
+     idCajaFuerte: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idcajafuerte',
++      field: 'idCajaFuerte',
+     },
+     codigo: {
+       type: DataTypes.STRING(100),
+       allowNull: false,
+       unique: true,
+       field: 'codigo',
+     },
+     saldoActual: {
+       type: DataTypes.DECIMAL(18, 2),
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'saldoactual',
++      field: 'saldoActual',
+     },
+     limiteMaximo: {
+       type: DataTypes.DECIMAL(18, 2),
+       allowNull: false,
+-      field: 'limitemaximo',
++      field: 'limiteMaximo',
+     },
+     ubicacion: {
+       type: DataTypes.STRING(150),
+       allowNull: true,
+       field: 'ubicacion',
+     },
+     fechaUltimaActualizacion: {
+       type: DataTypes.DATE,
+       allowNull: false,
+       defaultValue: DataTypes.NOW,
+-      field: 'fechaultimaactualizacion',
++      field: 'fechaUltimaActualizacion',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'caja_fuerte',
++    tableName: 'cajas_fuertes',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_cajas_fuertes_codigo',
+         unique: true,
+         fields: ['codigo'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 8. Modelo VentaDiaria - Corregir nombre de tabla, mapeos de campos, agregar campos faltantes
+# ============================================================================
+# Archivo: app/server/src/models/VentaDiaria.ts
+
+--- a/app/server/src/models/VentaDiaria.ts
++++ b/app/server/src/models/VentaDiaria.ts
+@@ -4,6 +4,7 @@ import sequelize from '../config/database';
+ export interface VentaDiariaAttributes {
+   idVenta: number;
+   fecha: Date;
++  numeroClientes: number;
+   totalEfectivo: number;
+   totalTarjeta: number;
+   ventaTotal: number;
+   idCaja: number;
+   idUsuario: number;
++  idReporte?: number | null;
+ }
+ 
+ export interface VentaDiariaCreationAttributes
+-  extends Optional<VentaDiariaAttributes, 'idVenta' | 'fecha' | 'ventaTotal'> {}
++  extends Optional<VentaDiariaAttributes, 'idVenta' | 'fecha' | 'ventaTotal' | 'idReporte'> {}
+ 
+ export class VentaDiaria
+   extends Model<VentaDiariaAttributes, VentaDiariaCreationAttributes>
+   implements VentaDiariaAttributes
+ {
+   public idVenta!: number;
+   public fecha!: Date;
++  public numeroClientes!: number;
+   public totalEfectivo!: number;
+   public totalTarjeta!: number;
+   public ventaTotal!: number;
+   public idCaja!: number;
+   public idUsuario!: number;
++  public idReporte?: number | null;
+ }
+ 
+ VentaDiaria.init(
+   {
+     idVenta: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idventa',
++      field: 'idVenta',
+     },
+     fecha: {
+       type: DataTypes.DATEONLY,
+       allowNull: false,
+       defaultValue: DataTypes.NOW,
+       field: 'fecha',
+     },
+     numeroClientes: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'totalclientes',
++      field: 'numeroClientes',
+     },
+     totalEfectivo: {
+       type: DataTypes.DECIMAL(14, 2),
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'totalefectivo',
++      field: 'totalEfectivo',
+     },
+     totalTarjeta: {
+       type: DataTypes.DECIMAL(14, 2),
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'totaltarjeta',
++      field: 'totalTarjeta',
+     },
+     ventaTotal: {
+-      type: DataTypes.VIRTUAL,
+-      get() {
+-        const efectivo = parseFloat(this.getDataValue('totalEfectivo') || '0');
+-        const tarjeta = parseFloat(this.getDataValue('totalTarjeta') || '0');
+-        return efectivo + tarjeta;
+-      },
++      type: DataTypes.DECIMAL(14, 2),
++      allowNull: false,
++      defaultValue: 0,
++      field: 'ventaTotal',
+     },
+     idCaja: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idcaja',
++      field: 'idCaja',
+     },
+     idUsuario: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idusuariogeneral',
++      field: 'idUsuario',
+     },
++    idReporte: {
++      type: DataTypes.INTEGER,
++      allowNull: true,
++      field: 'idReporte',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'venta_diaria',
++    tableName: 'ventas_diarias',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_ventas_diarias_fecha',
+         fields: ['fecha'],
+       },
+       {
+         name: 'idx_ventas_diarias_caja',
+-        fields: ['idcaja'],
++        fields: ['idCaja'],
+       },
+       {
+         name: 'idx_ventas_diarias_usuario',
+-        fields: ['idusuariogeneral'],
++        fields: ['idUsuario'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 9. Modelo BitacoraAuditoria - Corregir nombre de tabla, mapeos de campos y nombres de campos
+# ============================================================================
+# Archivo: app/server/src/models/BitacoraAuditoria.ts
+
+--- a/app/server/src/models/BitacoraAuditoria.ts
++++ b/app/server/src/models/BitacoraAuditoria.ts
+@@ -40,7 +40,7 @@ BitacoraAuditoria.init(
+     idBitacora: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idbitacora',
++      field: 'idBitacora',
+     },
+     fechaHora: {
+       type: DataTypes.DATE,
+       allowNull: false,
+       defaultValue: DataTypes.NOW,
+-      field: 'fechahora',
++      field: 'fechaHora',
+     },
+     accion: {
+       type: DataTypes.STRING(200),
+       allowNull: false,
+       field: 'accion',
+     },
+     tablaModificada: {
+       type: DataTypes.STRING(200),
+       allowNull: false,
+-      field: 'moduloAfectado',  // La BD usa moduloAfectado, no tablaModificada
++      field: 'tablaModificada',
+     },
+     registroAfectado: {
+       type: DataTypes.STRING(200),
+       allowNull: false,
+-      field: 'registroId',  // La BD usa registroId, no registroAfectado
++      field: 'registroAfectado',
+     },
+     descripcion: {
+       type: DataTypes.STRING(1000),
+       allowNull: true,
+       field: 'descripcion',
+     },
+     valoresAnteriores: {
+       type: DataTypes.TEXT,
+       allowNull: true,
+-      field: 'valoresanteriores',
++      field: 'valoresAnteriores',
+     },
+     valoresNuevos: {
+       type: DataTypes.TEXT,
+       allowNull: true,
+-      field: 'valoresnuevos',
++      field: 'valoresNuevos',
+     },
+     direccionIP: {
+       type: DataTypes.STRING(100),
+       allowNull: true,
+-      field: 'direccionip',
++      field: 'direccionIP',
+     },
+     idUsuario: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idusuario',
++      field: 'idUsuario',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'bitacora_auditoria',
++    tableName: 'bitacoras_auditoria',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_bitacoras_fecha',
+-        fields: ['fechahora'],
++        fields: ['fechaHora'],
+       },
+       {
+         name: 'idx_bitacoras_usuario',
+-        fields: ['idusuario'],
++        fields: ['idUsuario'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 10. Modelo Conteo - Corregir nombre de tabla, mapeos de campos, agregar campos faltantes
+# ============================================================================
+# Archivo: app/server/src/models/Conteo.ts
+
+--- a/app/server/src/models/Conteo.ts
++++ b/app/server/src/models/Conteo.ts
+@@ -4,6 +4,7 @@ import sequelize from '../config/database';
+ export interface ConteoAttributes {
+   idConteo: number;
+   fechaHora: Date;
+   montoContado: number;
+   montoEsperado: number;
+   diferencia: number;
+   observaciones?: string | null;
+   idCaja: number;
+   idUsuario: number;
+   idTipoConteo: number;
++  idReporte?: number | null;
+ }
+ 
+ export interface ConteoCreationAttributes
+-  extends Optional<ConteoAttributes, 'idConteo' | 'fechaHora' | 'observaciones'> { }
++  extends Optional<ConteoAttributes, 'idConteo' | 'fechaHora' | 'observaciones' | 'idReporte'> { }
+ 
+ export class Conteo extends Model<ConteoAttributes, ConteoCreationAttributes> implements ConteoAttributes {
+   public idConteo!: number;
+   public fechaHora!: Date;
+   public montoContado!: number;
+   public montoEsperado!: number;
+   public diferencia!: number;
+   public observaciones?: string | null;
+   public idCaja!: number;
+   public idUsuario!: number;
+   public idTipoConteo!: number;
++  public idReporte?: number | null;
+ }
+ 
+ Conteo.init(
+   {
+     idConteo: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idconteo',
++      field: 'idConteo',
+     },
+     fechaHora: {
+       type: DataTypes.DATE,
+       allowNull: false,
+       defaultValue: DataTypes.NOW,
+-      field: 'fechahora',
++      field: 'fechaHora',
+     },
+     montoContado: {
+       type: DataTypes.DECIMAL(14, 2),
+       allowNull: false,
+-      field: 'montocontado',
++      field: 'montoContado',
+     },
+     montoEsperado: {
+       type: DataTypes.DECIMAL(14, 2),
+       allowNull: false,
+-      field: 'montoesperado',
++      field: 'montoEsperado',
+     },
+     diferencia: {
+-      type: DataTypes.VIRTUAL,
+-      get() {
+-        const contado = parseFloat(this.getDataValue('montoContado') || '0');
+-        const esperado = parseFloat(this.getDataValue('montoEsperado') || '0');
+-        return contado - esperado;
+-      },
++      type: DataTypes.DECIMAL(14, 2),
++      allowNull: false,
++      field: 'diferencia',
+     },
+     observaciones: {
+       type: DataTypes.STRING(500),
+       allowNull: true,
+       field: 'observaciones',
+     },
+     idCaja: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idcaja',
++      field: 'idCaja',
+     },
+     idUsuario: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idusuario',
++      field: 'idUsuario',
+     },
+     idTipoConteo: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idtipoconteo',
++      field: 'idTipoConteo',
+     },
++    idReporte: {
++      type: DataTypes.INTEGER,
++      allowNull: true,
++      field: 'idReporte',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'conteo',
++    tableName: 'conteos',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_conteos_fecha',
+-        fields: ['fechahora'],
++        fields: ['fechaHora'],
+       },
+       {
+         name: 'idx_conteos_caja',
+-        fields: ['idcaja'],
++        fields: ['idCaja'],
+       },
+       {
+         name: 'idx_conteos_usuario',
+-        fields: ['idusuario'],
++        fields: ['idUsuario'],
+       },
+       {
+         name: 'idx_conteos_tipo',
+-        fields: ['idtipoconteo'],
++        fields: ['idTipoConteo'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 11. Modelo DiferenciaCaja - Corregir nombre de tabla, mapeos de campos, agregar campos faltantes
+# ============================================================================
+# Archivo: app/server/src/models/DiferenciaCaja.ts
+
+--- a/app/server/src/models/DiferenciaCaja.ts
++++ b/app/server/src/models/DiferenciaCaja.ts
+@@ -4,6 +4,7 @@ import sequelize from '../config/database';
+ export interface DiferenciaCajaAttributes {
+   idDiferencia: number;
+   fecha: Date;
+   montoEsperado: number;
+   montoReal: number;
+   diferencia: number;
+   justificacion?: string | null;
+-  resuelta: number;  // La BD usa numeric(1,0): 0 = false, 1 = true
++  resuelta: boolean;
+   idConteo: number;
+   idTipoDiferencia: number;
+-  // idUsuario: number; // Nota: Esta columna no existe en la tabla
++  idUsuario: number;
+ }
+ 
+ export interface DiferenciaCajaCreationAttributes
+   extends Optional<DiferenciaCajaAttributes, 'idDiferencia' | 'fecha' | 'justificacion' | 'resuelta'> {}
+ 
+ export class DiferenciaCaja
+   extends Model<DiferenciaCajaAttributes, DiferenciaCajaCreationAttributes>
+   implements DiferenciaCajaAttributes
+ {
+   public idDiferencia!: number;
+   public fecha!: Date;
+   public montoEsperado!: number;
+   public montoReal!: number;
+   public diferencia!: number;
+   public justificacion?: string | null;
+-  public resuelta!: number;  // 0 = false, 1 = true
++  public resuelta!: boolean;
+   public idConteo!: number;
+   public idTipoDiferencia!: number;
+-  // public idUsuario!: number; // Nota: Esta columna no existe en la tabla
++  public idUsuario!: number;
+ }
+ 
+ DiferenciaCaja.init(
+   {
+     idDiferencia: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'iddiferencia',
++      field: 'idDiferencia',
+     },
+     fecha: {
+       type: DataTypes.DATE,
+       allowNull: false,
+       defaultValue: DataTypes.NOW,
+       field: 'fecha',
+     },
+     montoEsperado: {
+       type: DataTypes.DECIMAL(14, 2),
+       allowNull: false,
+-      field: 'montoesperado',
++      field: 'montoEsperado',
+     },
+     montoReal: {
+       type: DataTypes.DECIMAL(14, 2),
+       allowNull: false,
+-      field: 'montoreal',
++      field: 'montoReal',
+     },
+     diferencia: {
+-      type: DataTypes.VIRTUAL,
+-      get() {
+-        const esperado = parseFloat(this.getDataValue('montoEsperado') || '0');
+-        const real = parseFloat(this.getDataValue('montoReal') || '0');
+-        return real - esperado;
+-      },
++      type: DataTypes.DECIMAL(14, 2),
++      allowNull: false,
++      field: 'diferencia',
+     },
+     justificacion: {
+-      type: DataTypes.VIRTUAL,
+-      // Nota: Esta columna no existe en la tabla, se marca como virtual
++      type: DataTypes.STRING(500),
++      allowNull: true,
++      field: 'justificacion',
+     },
+     resuelta: {
+-      type: DataTypes.INTEGER,  // La BD usa numeric(1,0), no boolean
++      type: DataTypes.BOOLEAN,
+       allowNull: false,
+-      defaultValue: 0,
++      defaultValue: false,
+       field: 'resuelta',
+     },
+     idConteo: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idconteo',
++      field: 'idConteo',
+     },
+     idTipoDiferencia: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idtipodiferencia',
++      field: 'idTipoDiferencia',
+     },
++    idUsuario: {
++      type: DataTypes.INTEGER,
++      allowNull: false,
++      field: 'idUsuario',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'diferencia_caja',
++    tableName: 'diferencias_caja',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_diferencias_fecha',
+         fields: ['fecha'],
+       },
+       {
+         name: 'idx_diferencias_conteo',
+-        fields: ['idconteo'],
++        fields: ['idConteo'],
+       },
+       {
+         name: 'idx_diferencias_tipo',
+-        fields: ['idtipodiferencia'],
++        fields: ['idTipoDiferencia'],
+       },
+-      // Nota: El índice de usuario está comentado porque la columna no existe
+-      // {
+-      //   name: 'idx_diferencias_usuario',
+-      //   fields: ['idusuario'],
+-      // },
++      {
++        name: 'idx_diferencias_usuario',
++        fields: ['idUsuario'],
++      },
+     ],
+   }
+ );
+
+# ============================================================================
+# 12. Modelo TipoConteo - Corregir nombre de tabla y mapeos de campos
+# ============================================================================
+# Archivo: app/server/src/models/TipoConteo.ts
+
+--- a/app/server/src/models/TipoConteo.ts
++++ b/app/server/src/models/TipoConteo.ts
+@@ -20,7 +20,7 @@ TipoConteo.init(
+     idTipoConteo: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idtipoconteo',
++      field: 'idTipoConteo',
+     },
+     nombreTipo: {
+       type: DataTypes.STRING(20),
+       allowNull: false,
+       unique: true,
+-      field: 'nombretipo',
++      field: 'nombreTipo',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'tipo_conteo',
++    tableName: 'tipos_conteo',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_tipos_conteo_nombre',
+         unique: true,
+-        fields: ['nombretipo'],
++        fields: ['nombreTipo'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 13. Modelo TipoDiferencia - Corregir nombre de tabla y mapeos de campos
+# ============================================================================
+# Archivo: app/server/src/models/TipoDiferencia.ts
+
+--- a/app/server/src/models/TipoDiferencia.ts
++++ b/app/server/src/models/TipoDiferencia.ts
+@@ -20,7 +20,7 @@ TipoDiferencia.init(
+     idTipoDiferencia: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idtipodiferencia',
++      field: 'idTipoDiferencia',
+     },
+     nombreTipo: {
+       type: DataTypes.STRING(20),
+       allowNull: false,
+       unique: true,
+-      field: 'nombretipo',
++      field: 'nombreTipo',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'tipo_diferencia',
++    tableName: 'tipos_diferencia',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_tipos_diferencia_nombre',
+         unique: true,
+-        fields: ['nombretipo'],
++        fields: ['nombreTipo'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 14. Modelo ReporteDiario - Corregir nombre de tabla, mapeos de campos, agregar/eliminar campos
+# ============================================================================
+# Archivo: app/server/src/models/ReporteDiario.ts
+
+--- a/app/server/src/models/ReporteDiario.ts
++++ b/app/server/src/models/ReporteDiario.ts
+@@ -4,6 +4,8 @@ import sequelize from '../config/database';
+ export interface ReporteDiarioAttributes {
+   idReporte: number;
+   fecha: Date;
+   totalVentas: number;
+   saldoFinal: number;
+-  totalClientes: number;
++  numeroClientesTotal: number;
+   totalEfectivo: number;
+   totalTarjeta: number;
+-  totalGastosDia: number;
+-  totalDiferencias: number;
++  totalGastos: number;
++  resumenDiferencias?: string | null;
++  cantidadDiferencias: number;
+   idUsuarioGenerador: number;
+ }
+ 
+ export interface ReporteDiarioCreationAttributes
+   extends Optional<
+     ReporteDiarioAttributes,
+     | 'idReporte'
+     | 'fecha'
+     | 'totalVentas'
+     | 'saldoFinal'
+-    | 'totalClientes'
++    | 'numeroClientesTotal'
+     | 'totalEfectivo'
+     | 'totalTarjeta'
+-    | 'totalGastosDia'
+-    | 'totalDiferencias'
++    | 'totalGastos'
++    | 'resumenDiferencias'
++    | 'cantidadDiferencias'
+   > {}
+ 
+ export class ReporteDiario
+   extends Model<ReporteDiarioAttributes, ReporteDiarioCreationAttributes>
+   implements ReporteDiarioAttributes
+ {
+   public idReporte!: number;
+   public fecha!: Date;
+   public totalVentas!: number;
+   public saldoFinal!: number;
+-  public totalClientes!: number;
++  public numeroClientesTotal!: number;
+   public totalEfectivo!: number;
+   public totalTarjeta!: number;
+-  public totalGastosDia!: number;
+-  public totalDiferencias!: number;
++  public totalGastos!: number;
++  public resumenDiferencias?: string | null;
++  public cantidadDiferencias!: number;
+   public idUsuarioGenerador!: number;
+ }
+ 
+ ReporteDiario.init(
+   {
+     idReporte: {
+       type: DataTypes.INTEGER,
+       autoIncrement: true,
+       primaryKey: true,
+-      field: 'idreporte',
++      field: 'idReporte',
+     },
+     fecha: {
+       type: DataTypes.DATEONLY,
+       allowNull: false,
+       defaultValue: DataTypes.NOW,
+       field: 'fecha',
+     },
+     totalVentas: {
+       type: DataTypes.DECIMAL(18, 2),
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'totalventas',
++      field: 'totalVentas',
+     },
+     saldoFinal: {
+       type: DataTypes.DECIMAL(18, 2),
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'saldofinal',
++      field: 'saldoFinal',
+     },
+-    totalClientes: {
++    numeroClientesTotal: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'totalclientestotal',
++      field: 'numeroClientesTotal',
+     },
+     totalEfectivo: {
+       type: DataTypes.DECIMAL(18, 2),
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'totalefectivototal',
++      field: 'totalEfectivo',
+     },
+     totalTarjeta: {
+       type: DataTypes.DECIMAL(18, 2),
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'totaltarjeta',
++      field: 'totalTarjeta',
+     },
+-    totalGastosDia: {
++    totalGastos: {
+       type: DataTypes.DECIMAL(18, 2),
+       allowNull: false,
+       defaultValue: 0,
+-      field: 'totalgastosdia',
++      field: 'totalGastos',
+     },
+-    totalDiferencias: {
+-      type: DataTypes.DECIMAL(18, 2),
+-      allowNull: false,
+-      defaultValue: 0,
+-      field: 'totaldiferencias',
++    resumenDiferencias: {
++      type: DataTypes.STRING(1000),
++      allowNull: true,
++      field: 'resumenDiferencias',
+     },
++    cantidadDiferencias: {
++      type: DataTypes.INTEGER,
++      allowNull: false,
++      defaultValue: 0,
++      field: 'cantidadDiferencias',
+     },
+     idUsuarioGenerador: {
+       type: DataTypes.INTEGER,
+       allowNull: false,
+-      field: 'idusuariogenerador',
++      field: 'idUsuarioGenerador',
+     },
+   },
+   {
+     sequelize,
+-    tableName: 'reporte_diario',
++    tableName: 'reportes_diarios',
+     timestamps: false,
+     indexes: [
+       {
+         name: 'idx_reportes_diarios_fecha',
+         fields: ['fecha'],
+       },
+       {
+         name: 'idx_reportes_diarios_usuario',
+-        fields: ['idusuariogenerador'],
++        fields: ['idUsuarioGenerador'],
+       },
+     ],
+   }
+ );
+
+# ============================================================================
+# 15. Actualizar asociaciones en index.ts
+# ============================================================================
+# Archivo: app/server/src/models/index.ts
+# Nota: Las asociaciones pueden necesitar actualizaciones si cambiaron los nombres de columnas de claves foráneas
+# La mayoría de las asociaciones deberían seguir funcionando, pero verificar que los nombres de campos de claves foráneas coincidan
+# con los nuevos nombres de columnas en camelCase del esquema de base de datos.

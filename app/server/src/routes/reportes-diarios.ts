@@ -22,26 +22,24 @@ router.post('/', async (req: Request, res: Response) => {
     const {
       fecha,
       totalVentas = 0,
-      totalGastos = 0,
+      totalGastosDia = 0,
       saldoFinal = 0,
-      numeroClientesTotal = 0,
+      totalClientes = 0,
       totalEfectivo = 0,
       totalTarjeta = 0,
-      resumenDiferencias,
-      cantidadDiferencias = 0,
+      totalDiferencias = 0,
       idUsuarioGenerador,
     } = validatedData;
 
     const reporte = await ReporteDiario.create({
       fecha: parseFecha(fecha),
       totalVentas,
-      totalGastos,
+      totalGastosDia,
       saldoFinal,
-      numeroClientesTotal,
+      totalClientes,
       totalEfectivo,
       totalTarjeta,
-      resumenDiferencias: resumenDiferencias ?? null,
-      cantidadDiferencias,
+      totalDiferencias,
       idUsuarioGenerador,
     });
 
@@ -119,26 +117,24 @@ router.put('/:idReporte', async (req: Request, res: Response) => {
     const {
       fecha,
       totalVentas = reporte.totalVentas,
-      totalGastos = reporte.totalGastos,
+      totalGastosDia = reporte.totalGastosDia,
       saldoFinal = reporte.saldoFinal,
-      numeroClientesTotal = reporte.numeroClientesTotal,
+      totalClientes = reporte.totalClientes,
       totalEfectivo = reporte.totalEfectivo,
       totalTarjeta = reporte.totalTarjeta,
-      resumenDiferencias = reporte.resumenDiferencias ?? null,
-      cantidadDiferencias = reporte.cantidadDiferencias,
+      totalDiferencias = reporte.totalDiferencias,
       idUsuarioGenerador = reporte.idUsuarioGenerador,
     } = validatedData;
 
     await reporte.update({
       fecha: parseFecha(fecha),
       totalVentas,
-      totalGastos,
+      totalGastosDia,
       saldoFinal,
-      numeroClientesTotal,
+      totalClientes,
       totalEfectivo,
       totalTarjeta,
-      resumenDiferencias,
-      cantidadDiferencias,
+      totalDiferencias,
       idUsuarioGenerador,
     });
 

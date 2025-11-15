@@ -3,103 +3,105 @@
  * Esta es una versión mock que puede ser reemplazada por una implementación real
  */
 
-export interface AnomalyDetectionInput {
-  storeId: string;
-  date: string;
-  expenses: Array<{
-    expenseId: string;
-    category: string;
-    item: string;
-    amount: number;
-    description: string;
-    attachmentUrl: string | null;
+export interface EntradaDeteccionAnomalias {
+  idTienda: string;
+  fecha: string;
+  gastos: Array<{
+    idGasto: number;
+    idCategoria: number;
+    monto: number;
+    descripcion: string;
   }>;
-  salesCash: number;
-  salesCard: number;
-  totalDifference: number;
-  customerCount: number;
+  ventasEfectivo: number;
+  ventasTarjeta: number;
+  diferenciaTotal: number;
+  cantidadClientes: number;
 }
 
-export interface Anomaly {
-  type: string;
-  message: string;
-  severity: 'low' | 'medium' | 'high';
+export interface Anomalia {
+  tipo: string;
+  mensaje: string;
+  severidad: 'baja' | 'media' | 'alta';
 }
 
-export interface AnomalyDetectionOutput {
-  anomalies: Anomaly[];
-  shouldSendAlert: boolean;
-  summary: string;
+export interface SalidaDeteccionAnomalias {
+  anomalias: Anomalia[];
+  debeEnviarAlerta: boolean;
+  resumen: string;
 }
 
 /**
  * Detecta anomalías en los datos financieros del día
  */
-export async function detectAnomaliesAndAlert(
-  input: AnomalyDetectionInput
-): Promise<AnomalyDetectionOutput> {
-  const anomalies: Anomaly[] = [];
-  let shouldSendAlert = false;
+export async function detectarAnomaliasYAlertar(
+  entrada: EntradaDeteccionAnomalias
+): Promise<SalidaDeteccionAnomalias> {
+  const anomalias: Anomalia[] = [];
+  let debeEnviarAlerta = false;
 
   // Detectar diferencia significativa
-  if (Math.abs(input.totalDifference) > 50) {
-    anomalies.push({
-      type: 'Diferencia Significativa',
-      message: `La diferencia de caja es de $${Math.abs(input.totalDifference).toFixed(2)}, que excede el umbral de $50.`,
-      severity: 'high',
+  if (Math.abs(entrada.diferenciaTotal) > 50) {
+    anomalias.push({
+      tipo: 'Diferencia Significativa',
+      mensaje: `La diferencia de caja es de $${Math.abs(entrada.diferenciaTotal).toFixed(2)}, que excede el umbral de $50.`,
+      severidad: 'alta',
     });
-    shouldSendAlert = true;
-  } else if (Math.abs(input.totalDifference) > 20) {
-    anomalies.push({
-      type: 'Diferencia Moderada',
-      message: `La diferencia de caja es de $${Math.abs(input.totalDifference).toFixed(2)}.`,
-      severity: 'medium',
+    debeEnviarAlerta = true;
+  } else if (Math.abs(entrada.diferenciaTotal) > 20) {
+    anomalias.push({
+      tipo: 'Diferencia Moderada',
+      mensaje: `La diferencia de caja es de $${Math.abs(entrada.diferenciaTotal).toFixed(2)}.`,
+      severidad: 'media',
     });
   }
 
   // Detectar gastos inusuales
-  const totalExpenses = input.expenses.reduce((sum, exp) => sum + exp.amount, 0);
-  if (totalExpenses > input.salesCash * 0.5) {
-    anomalies.push({
-      type: 'Gastos Elevados',
-      message: `Los gastos totales ($${totalExpenses.toFixed(2)}) representan más del 50% de las ventas en efectivo.`,
-      severity: 'medium',
+  const totalGastos = entrada.gastos.reduce((sum, gasto) => sum + Number(gasto.monto), 0);
+  if (totalGastos > entrada.ventasEfectivo * 0.5) {
+    anomalias.push({
+      tipo: 'Gastos Elevados',
+      mensaje: `Los gastos totales ($${totalGastos.toFixed(2)}) representan más del 50% de las ventas en efectivo.`,
+      severidad: 'media',
     });
   }
 
   // Detectar gastos individuales muy altos
-  const highExpenses = input.expenses.filter(exp => exp.amount > 100);
-  if (highExpenses.length > 0) {
-    anomalies.push({
-      type: 'Gasto Individual Alto',
-      message: `Se detectaron ${highExpenses.length} gasto(s) superior(es) a $100.`,
-      severity: highExpenses.length > 2 ? 'high' : 'low',
+  const gastosAltos = entrada.gastos.filter((gasto) => Number(gasto.monto) > 100);
+  if (gastosAltos.length > 0) {
+    anomalias.push({
+      tipo: 'Gasto Individual Alto',
+      mensaje: `Se detectaron ${gastosAltos.length} gasto(s) superior(es) a $100.`,
+      severidad: gastosAltos.length > 2 ? 'alta' : 'baja',
     });
-    if (highExpenses.length > 2) {
-      shouldSendAlert = true;
+    if (gastosAltos.length > 2) {
+      debeEnviarAlerta = true;
     }
   }
 
   // Detectar ratio de clientes a ventas inusual
-  if (input.customerCount > 0) {
-    const avgSalePerCustomer = (input.salesCash + input.salesCard) / input.customerCount;
-    if (avgSalePerCustomer < 5) {
-      anomalies.push({
-        type: 'Venta Promedio Baja',
-        message: `La venta promedio por cliente es de $${avgSalePerCustomer.toFixed(2)}, lo cual es inusualmente bajo.`,
-        severity: 'medium',
+  if (entrada.cantidadClientes > 0) {
+    const ventaPromedioPorCliente =
+      (entrada.ventasEfectivo + entrada.ventasTarjeta) / entrada.cantidadClientes;
+    if (ventaPromedioPorCliente < 5) {
+      anomalias.push({
+        tipo: 'Venta Promedio Baja',
+        mensaje: `La venta promedio por cliente es de $${ventaPromedioPorCliente.toFixed(2)}, lo cual es inusualmente bajo.`,
+        severidad: 'media',
       });
     }
   }
 
-  const summary = anomalies.length > 0
-    ? `Se detectaron ${anomalies.length} anomalía(s). ${shouldSendAlert ? 'Se requiere atención inmediata.' : ''}`
-    : 'No se detectaron anomalías significativas.';
+  const resumen =
+    anomalias.length > 0
+      ? `Se detectaron ${anomalias.length} anomalía(s). ${
+          debeEnviarAlerta ? 'Se requiere atención inmediata.' : ''
+        }`
+      : 'No se detectaron anomalías significativas.';
 
   return {
-    anomalies,
-    shouldSendAlert,
-    summary,
+    anomalias,
+    debeEnviarAlerta,
+    resumen,
   };
 }
 

@@ -4,12 +4,15 @@
   "private": true,
   "description": "Sistema de gestión de caja - Backend Node.js/Express + Frontend Next.js",
   "scripts": {
-    "use:local": "npx cross-env ACTIVE_DB=local USE_SSL=false docker compose up --build",
-    "use:supabase": "npx cross-env ACTIVE_DB=supabase USE_SSL=true docker compose up --build",
+    "use:local": "npx cross-env ACTIVE_DB=local USE_SSL=false docker compose --profile local up --build",
+    "use:supabase": "npx cross-env ACTIVE_DB=supabase USE_SSL=true docker compose --profile supabase up --build",
+    "down": "docker compose down",
+    "down:volumes": "docker compose down -v",
     "dev": "cd app/web && npm run dev",
     "dev:web": "cd app/web && npm run dev",
     "dev:server": "cd app/server && npm run dev",
-    "dev:all": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
+    "dev:all": "npx concurrently \"npm run dev:server\" \"npm run dev:web\"",
+    "start:dev": "npx concurrently \"npm run dev:server\" \"npm run dev:web\"",
     "build": "cd app/web && npm run build",
     "build:server": "cd app/server && npm run build",
     "start": "cd app/web && npm start",
@@ -20,7 +23,8 @@
     "typecheck:server": "cd app/server && npm run typecheck",
     "install:web": "cd app/web && npm install",
     "install:server": "cd app/server && npm install",
-    "install:all": "npm run install:server && npm run install:web"
+    "install:all": "npm run install:server && npm run install:web",
+    "migration:codigo": "powershell -ExecutionPolicy Bypass -File scripts/apply-migration-codigo.ps1"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

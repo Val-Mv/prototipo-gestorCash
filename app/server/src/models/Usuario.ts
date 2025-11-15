@@ -5,7 +5,7 @@ export interface UsuarioAttributes {
   idUsuario: number;
   nombreCompleto: string;
   email: string;
-  contrasenaHash: string;
+  contrasenahash: string;
   telefono?: string | null;
   fechaCreacion?: Date;
   estadoActivo: boolean;
@@ -13,13 +13,13 @@ export interface UsuarioAttributes {
 }
 
 export interface UsuarioCreationAttributes
-  extends Optional<UsuarioAttributes, 'idUsuario' | 'telefono' | 'fechaCreacion' | 'estadoActivo'> {}
+  extends Optional<UsuarioAttributes, 'idUsuario' | 'telefono' | 'fechaCreacion' | 'estadoActivo'> { }
 
 export class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implements UsuarioAttributes {
   public idUsuario!: number;
   public nombreCompleto!: string;
   public email!: string;
-  public contrasenaHash!: string;
+  public contrasenahash!: string;
   public telefono?: string | null;
   public fechaCreacion?: Date;
   public estadoActivo!: boolean;
@@ -32,42 +32,59 @@ Usuario.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idusuario',
     },
     nombreCompleto: {
       type: DataTypes.STRING(150),
       allowNull: false,
+      field: 'nombrecompleto',
     },
     email: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
+      field: 'email',
     },
-    contrasenaHash: {
+    contrasenahash: {
       type: DataTypes.STRING(255),
       allowNull: false,
+      field: 'contrasenahash',
     },
     telefono: {
-      type: DataTypes.STRING(30),
+      type: DataTypes.STRING(20),
       allowNull: true,
+      field: 'telefono',
     },
     fechaCreacion: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fechacreacion',
     },
     estadoActivo: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: true,
+      defaultValue: 1,
+      field: 'estadoactivo',
+      get() {
+        const raw = (this as any).getDataValue('estadoactivo');
+        return Number(raw) === 1;
+      },
+      set(value: boolean | number | string) {
+        const val = value === true || value === 1 || value === "1" ? 1 : 0;
+        (this as any).setDataValue('estadoactivo', val);
+      },
     },
+
     idRol: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idrol',
     },
   },
   {
     sequelize,
-    tableName: 'usuarios',
+    tableName: 'usuario',
     timestamps: false,
     indexes: [
       {

@@ -1,9 +1,11 @@
 services:
-  #  Base de datos PostgreSQL
+  #  Base de datos PostgreSQL (solo para perfil local)
   db:
     image: postgres:16
     container_name: gestor-postgres
     restart: always
+    profiles:
+      - local
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -22,21 +24,25 @@ services:
   backend:
     build: ./app/server
     container_name: gestor-backend
-    depends_on:
-      db:
-        condition: service_healthy
     ports:
       - "8000:8000"
     env_file:
       - ./app/server/.env
     environment:
-      - ACTIVE_DB=local
-      - USE_SSL=false
+      - ACTIVE_DB=${ACTIVE_DB:-local}
+      - USE_SSL=${USE_SSL:-false}
+      - RUNNING_IN_DOCKER=true
+      - DOCKER_CONTAINER=true
     volumes:
       - ./app/server:/app
       - /app/node_modules
     command: npm run dev
     restart: always
+    profiles:
+      - local
+      - supabase
+    # Solo depende de db cuando se usa el perfil local
+    # Para supabase, esta dependencia se ignora automáticamente
   # frontend:
   #   build: ./app/web
   #   ports:

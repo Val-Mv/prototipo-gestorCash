@@ -11,7 +11,6 @@ export interface DiferenciaCajaAttributes {
   resuelta: boolean;
   idConteo: number;
   idTipoDiferencia: number;
-  idUsuario: number;
 }
 
 export interface DiferenciaCajaCreationAttributes
@@ -30,7 +29,6 @@ export class DiferenciaCaja
   public resuelta!: boolean;
   public idConteo!: number;
   public idTipoDiferencia!: number;
-  public idUsuario!: number;
 }
 
 DiferenciaCaja.init(
@@ -39,49 +37,63 @@ DiferenciaCaja.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'iddiferencia',
     },
     fecha: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'fecha',
     },
     montoEsperado: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
+      field: 'montoesperado',
     },
     montoReal: {
-      type: DataTypes.DECIMAL(14, 2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
+      field: 'montoreal',
     },
     diferencia: {
-      type: DataTypes.DECIMAL(14, 2),
-      allowNull: false,
+      type: DataTypes.VIRTUAL,
+      get(): number {
+        const esperado = Number(this.getDataValue('montoEsperado') || '0');
+        const real = Number(this.getDataValue('montoReal') || '0');
+        return real - esperado;
+      },
     },
     justificacion: {
-      type: DataTypes.STRING(500),
-      allowNull: true,
+      type: DataTypes.VIRTUAL,
+      // Nota: Esta columna no existe en la tabla, se marca como virtual
     },
     resuelta: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER,
+      field: 'resuelta',
       allowNull: false,
-      defaultValue: false,
+      defaultValue: 0,
+      get() {
+        const raw = this.getDataValue('resuelta') as unknown as number;
+        return raw === 1;
+      },
+      set(value: boolean) {
+        this.setDataValue('resuelta', value ? 1 : 0 as any);
+      },
     },
     idConteo: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'idconteo',
     },
     idTipoDiferencia: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    },
-    idUsuario: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+      field: 'idtipodiferencia',
     },
   },
   {
     sequelize,
-    tableName: 'diferencias_caja',
+    tableName: 'diferencia_caja',
     timestamps: false,
     indexes: [
       {
@@ -90,15 +102,11 @@ DiferenciaCaja.init(
       },
       {
         name: 'idx_diferencias_conteo',
-        fields: ['idConteo'],
+        fields: ['idconteo'],
       },
       {
         name: 'idx_diferencias_tipo',
-        fields: ['idTipoDiferencia'],
-      },
-      {
-        name: 'idx_diferencias_usuario',
-        fields: ['idUsuario'],
+        fields: ['idtipodiferencia'],
       },
     ],
   }

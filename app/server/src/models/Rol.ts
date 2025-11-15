@@ -7,7 +7,7 @@ export interface RolAttributes {
   descripcion?: string | null;
 }
 
-export interface RolCreationAttributes extends Optional<RolAttributes, 'idRol' | 'descripcion'> {}
+export interface RolCreationAttributes extends Optional<RolAttributes, 'idRol' | 'descripcion'> { }
 
 export class Rol extends Model<RolAttributes, RolCreationAttributes> implements RolAttributes {
   public idRol!: number;
@@ -21,26 +21,29 @@ Rol.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: 'idrol',
     },
     nombreRol: {
       type: DataTypes.STRING(50),
       allowNull: false,
       unique: true,
+      field: 'nombrerol',
     },
     descripcion: {
       type: DataTypes.STRING(200),
       allowNull: true,
+      field: 'descripcion',
     },
   },
   {
     sequelize,
-    tableName: 'roles',
+    tableName: 'rol',
     timestamps: false,
     indexes: [
       {
         name: 'idx_roles_nombre',
         unique: true,
-        fields: ['nombreRol'],
+        fields: ['nombrerol'],
       },
     ],
   }

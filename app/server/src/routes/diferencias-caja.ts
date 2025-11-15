@@ -58,7 +58,6 @@ router.get('/', async (req: Request, res: Response) => {
       skip = '0',
       limit = '100',
       idConteo,
-      idUsuario,
       idTipoDiferencia,
       resuelta,
       fechaDesde,
@@ -67,7 +66,6 @@ router.get('/', async (req: Request, res: Response) => {
 
     const where: any = {};
     if (idConteo) where.idConteo = Number(idConteo);
-    if (idUsuario) where.idUsuario = Number(idUsuario);
     if (idTipoDiferencia) where.idTipoDiferencia = Number(idTipoDiferencia);
     if (typeof resuelta === 'string') {
       where.resuelta = resuelta === 'true';

@@ -1,22 +1,22 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-// Forzar la inclusión del driver de pg en el bundle de Vercel
-import 'pg';
-import { syncDatabase } from './models'; // Asumiendo que fixSequences y seedRoles no están exportados
-// import { fixSequences, seedRoles } from './models'; // Descomentar cuando se implementen
+import { syncDatabase } from './models';
+import { fixSequences } from './seeders/000_fix_sequences';
+import { seedRoles } from './seeders/001_create_roles';
 import gastosRoutes from './routes/gastos';
 import ventasDiariasRoutes from './routes/ventas-diarias';
 import bitacorasRoutes from './routes/bitacoras';
 // import authRoutes from './routes/auth'; // Descomentar cuando se cree el archivo de rutas de autenticación
 import usuariosRoutes from './routes/usuarios';
+import authRoutes from './routes/auth';
 import storesRoutes from './routes/stores';
 import conteosRoutes from './routes/conteos';
 import diferenciasCajaRoutes from './routes/diferencias-caja';
 import tiposConteoRoutes from './routes/tipos-conteo';
 import tiposDiferenciaRoutes from './routes/tipos-diferencia';
 import reportesDiariosRoutes from './routes/reportes-diarios';
-// import rolesRoutes from './routes/roles'; // Descomentar cuando se cree el archivo de rutas de roles
+import rolesRoutes from './routes/roles';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -97,6 +97,29 @@ app.get('/', (_req, res) => {
   });
 });
 
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'healthy' });
+});
+
+// Rutas de autenticación (sin prefijo /api)
+app.use('/auth', authRoutes);
+
+// Rutas de usuario (sin prefijo /api)
+app.use('/usuario', usuariosRoutes);
+
+// Rutas con prefijo /api (mantener compatibilidad)
+app.use('/api/gastos', gastosRoutes);
+app.use('/api/ventas-diarias', ventasDiariasRoutes);
+app.use('/api/bitacoras', bitacorasRoutes);
+app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/stores', storesRoutes);
+app.use('/api/conteos', conteosRoutes);
+app.use('/api/diferencias-caja', diferenciasCajaRoutes);
+app.use('/api/tipos-conteo', tiposConteoRoutes);
+app.use('/api/tipos-diferencia', tiposDiferenciaRoutes);
+app.use('/api/reportes-diarios', reportesDiariosRoutes);
+app.use('/api/roles', rolesRoutes);
+
 // Manejo de errores
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Error:', err);
@@ -105,6 +128,29 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   });
 });
 
-// Exportar la app de Express para que Vercel la pueda usar.
-// Vercel se encarga de ejecutar el servidor.
-export default app;
+// Inicializar servidor
+async function startServer() {
+  try {
+    // Sincronizar base de datos
+    await syncDatabase();
+
+    // Verificar y corregir secuencias de auto-increment
+    await fixSequences();
+
+    // Poblar datos iniciales (roles)
+    console.log('🌱 Verificando datos iniciales...');
+    await seedRoles();
+
+    // Iniciar servidor
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`📚 Health check: http://localhost:${PORT}/api/health`);
+    });
+  } catch (error) {
+    console.error('❌ Error al iniciar el servidor:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
+
