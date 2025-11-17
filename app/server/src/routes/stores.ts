@@ -79,63 +79,9 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// Obtener una tienda por ID
-router.get('/:store_id', async (req: Request, res: Response) => {
-  try {
-    const store = await Store.findByPk(req.params.store_id);
-    
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
-    }
-
-    return res.json(store);
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// Actualizar una tienda
-router.put('/:store_id', async (req: Request, res: Response) => {
-  try {
-    const store = await Store.findByPk(req.params.store_id);
-    
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
-    }
-
-    const updateData = storeUpdateSchema.parse(req.body);
-    if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({ error: 'No se proporcionaron datos para actualizar' });
-    }
-
-    await store.update(updateData);
-    return res.json(store);
-  } catch (error: any) {
-    if (error.name === 'ZodError') {
-      return res.status(400).json({ error: 'Datos inválidos', details: error.errors });
-    } else {
-      return res.status(500).json({ error: error.message });
-    }
-  }
-});
-
-// Eliminar (desactivar) una tienda
-router.delete('/:store_id', async (req: Request, res: Response) => {
-  try {
-    const store = await Store.findByPk(req.params.store_id);
-    
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
-    }
-
-    await store.update({ active: false });
-    return res.json({ message: 'Store deactivated successfully' });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
 // ========== CASH REGISTERS ==========
+// IMPORTANTE: Las rutas de /registers deben ir ANTES de las rutas dinámicas /:store_id
+// para que Express las evalúe correctamente
 
 // Crear una nueva registradora
 router.post('/registers', async (req: Request, res: Response) => {
@@ -226,6 +172,64 @@ router.delete('/registers/:register_id', async (req: Request, res: Response) => 
 
     await register.update({ estadoActiva: false });
     return res.json({ message: 'Cash register deactivated successfully' });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== STORES (rutas dinámicas después de rutas específicas) ==========
+
+// Obtener una tienda por ID
+router.get('/:store_id', async (req: Request, res: Response) => {
+  try {
+    const store = await Store.findByPk(req.params.store_id);
+    
+    if (!store) {
+      return res.status(404).json({ error: 'Store not found' });
+    }
+
+    return res.json(store);
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// Actualizar una tienda
+router.put('/:store_id', async (req: Request, res: Response) => {
+  try {
+    const store = await Store.findByPk(req.params.store_id);
+    
+    if (!store) {
+      return res.status(404).json({ error: 'Store not found' });
+    }
+
+    const updateData = storeUpdateSchema.parse(req.body);
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No se proporcionaron datos para actualizar' });
+    }
+
+    await store.update(updateData);
+    return res.json(store);
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      return res.status(400).json({ error: 'Datos inválidos', details: error.errors });
+    } else {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+});
+
+// Eliminar (desactivar) una tienda
+router.delete('/:store_id', async (req: Request, res: Response) => {
+  try {
+    const store = await Store.findByPk(req.params.store_id);
+    
+    if (!store) {
+      return res.status(404).json({ error: 'Store not found' });
+    }
+
+    await store.update({ active: false });
+    return res.json({ message: 'Store deactivated successfully' });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }

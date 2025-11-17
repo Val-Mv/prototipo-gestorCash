@@ -34,11 +34,9 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = conteoCreateSchema.parse(req.body);
     const { fechaHora, ...rest } = validatedData;
-    const diferencia = validatedData.montoContado - validatedData.montoEsperado;
 
     const conteo = await Conteo.create({
       ...rest,
-      diferencia,
       fechaHora: parseFechaHora(fechaHora),
     });
 
@@ -114,14 +112,10 @@ router.put('/:idConteo', async (req: Request, res: Response) => {
 
     if (!conteo) throw new Error('Conteo no encontrado');
 
-    const { fechaHora, montoContado, montoEsperado, ...rest } = validatedData;
-    const diferencia = montoContado - montoEsperado;
+    const { fechaHora, ...rest } = validatedData;
 
     await conteo.update({
       ...rest,
-      montoContado,
-      montoEsperado,
-      diferencia,
       fechaHora: parseFechaHora(fechaHora),
     });
 
