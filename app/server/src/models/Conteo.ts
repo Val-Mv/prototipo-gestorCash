@@ -14,7 +14,7 @@ export interface ConteoAttributes {
 }
 
 export interface ConteoCreationAttributes
-  extends Optional<ConteoAttributes, 'idConteo' | 'fechaHora' | 'observaciones'> { }
+  extends Optional<ConteoAttributes, 'idConteo' | 'fechaHora' | 'observaciones' | 'diferencia'> { }
 
 export class Conteo extends Model<ConteoAttributes, ConteoCreationAttributes> implements ConteoAttributes {
   public idConteo!: number;
