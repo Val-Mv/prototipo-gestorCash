@@ -51,14 +51,35 @@ export async function apiRequest<T>(
 
     if (!response || !response.ok) {
       let errorData;
-      try {
-        errorData = await response.json();
-      } catch (e) {
-        console.error("Error al parsear respuesta JSON:", e);
-        errorData = {
-          message: `HTTP error! status: ${response?.status || 'unknown'}`,
-          error: `HTTP error! status: ${response?.status || 'unknown'}`
-        };
+      const contentType = response.headers.get('content-type');
+      
+      // Verificar si la respuesta es JSON antes de intentar parsearla
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error("Error al parsear respuesta JSON:", e);
+          errorData = {
+            message: `HTTP error! status: ${response?.status || 'unknown'}`,
+            error: `HTTP error! status: ${response?.status || 'unknown'}`
+          };
+        }
+      } else {
+        // Si la respuesta no es JSON (probablemente HTML de error), leer como texto
+        try {
+          const text = await response.text();
+          console.error("Respuesta no-JSON recibida:", text.substring(0, 200));
+          errorData = {
+            message: `El servidor devolvió una respuesta no-JSON (${response?.status || 'unknown'}). Verifica que la ruta exista y el servidor esté funcionando correctamente.`,
+            error: `HTTP error! status: ${response?.status || 'unknown'} - Respuesta no-JSON`
+          };
+        } catch (e) {
+          console.error("Error al leer respuesta:", e);
+          errorData = {
+            message: `HTTP error! status: ${response?.status || 'unknown'}`,
+            error: `HTTP error! status: ${response?.status || 'unknown'}`
+          };
+        }
       }
 
       // Crear un error más descriptivo
@@ -71,6 +92,16 @@ export async function apiRequest<T>(
       (error as any).details = errorData.details || errorData.detalles;
       (error as any).status = response?.status;
       throw error;
+    }
+
+    // Verificar que la respuesta exitosa sea JSON antes de parsearla
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      // Clonar la respuesta para poder leer el texto sin consumir el body
+      const clonedResponse = response.clone();
+      const text = await clonedResponse.text();
+      console.error("Respuesta exitosa pero no-JSON:", text.substring(0, 200));
+      throw new Error(`El servidor devolvió una respuesta no-JSON. Esperado: application/json, recibido: ${contentType || 'unknown'}`);
     }
 
     const jsonData = await response.json();
