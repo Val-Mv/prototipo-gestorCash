@@ -124,6 +124,24 @@ app.use('/api/tipos-diferencia', tiposDiferenciaRoutes);
 app.use('/api/reportes-diarios', reportesDiariosRoutes);
 app.use('/api/roles', rolesRoutes);
 
+// Middleware para manejar rutas no encontradas (debe ir antes del manejo de errores)
+app.use((req: express.Request, res: express.Response, _next: express.NextFunction): void => {
+  // Si la ruta comienza con /api, devolver JSON
+  if (req.path.startsWith('/api')) {
+    res.status(404).json({
+      error: 'Ruta no encontrada',
+      message: `La ruta ${req.method} ${req.path} no existe`,
+      path: req.path,
+    });
+    return;
+  }
+  // Para otras rutas, devolver un mensaje simple
+  res.status(404).json({
+    error: 'Ruta no encontrada',
+    message: `La ruta ${req.method} ${req.path} no existe`,
+  });
+});
+
 // Manejo de errores
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Error:', err);
