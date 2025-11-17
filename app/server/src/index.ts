@@ -53,7 +53,7 @@ const ensureDbConnection = async (
   _req: express.Request,
   res: express.Response,
   next: express.NextFunction
-) => {
+): Promise<void> => {
   if (!isDbSynced) {
     try {
       await syncDatabase();
@@ -61,14 +61,21 @@ const ensureDbConnection = async (
       // await fixSequences(); // Descomentar cuando se implemente
       isDbSynced = true;
       // Si la sincronización es exitosa, pasamos al siguiente middleware.
-      return next();
-    } catch (error) {
+      next();
+      return;
+    } catch (error: any) {
       console.error('❌ Database connection failed on initial request:', error);
-      return res.status(503).json({ error: 'Service Unavailable: Could not connect to the database.' });
+      // Asegurar que siempre devolvemos JSON, incluso en caso de error
+      res.status(503).json({ 
+        error: 'Service Unavailable: Could not connect to the database.',
+        message: error?.message || 'Error de conexión a la base de datos',
+        details: 'Verifica las credenciales en el archivo .env y que la base de datos esté corriendo'
+      });
+      return;
     }
   }
   // Si la BD ya está sincronizada, simplemente continuamos.
-  return next();
+  next();
 };
 apiRouter.use(ensureDbConnection);
 
@@ -142,12 +149,15 @@ app.use((req: express.Request, res: express.Response, _next: express.NextFunctio
   });
 });
 
-// Manejo de errores
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+// Manejo de errores (asegurar que siempre devuelve JSON)
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction): void => {
   console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Error interno del servidor',
-  });
+  // Asegurar que el Content-Type sea JSON
+  if (!res.headersSent) {
+    res.status(err.status || 500).json({
+      error: err.message || 'Error interno del servidor',
+    });
+  }
 });
 
 // Solo iniciar el servidor con app.listen en un entorno de desarrollo.
